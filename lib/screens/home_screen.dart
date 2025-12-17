@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:luxora_app/services/auth_service.dart';
-import 'package:luxora_app/services/property_service.dart';
-import 'package:luxora_app/models/property_model.dart';
-import 'package:luxora_app/config/app_theme.dart';
-import 'package:luxora_app/screens/search_screen.dart';
-import 'package:luxora_app/screens/property_detail_screen.dart';
-import 'package:luxora_app/screens/wishlist_screen.dart';
-import 'package:luxora_app/screens/profile_screen.dart';
+import '../../services/auth_service.dart';
+import '../../services/property_service.dart';
+import '../../models/property_model.dart';
+import '../../config/app_theme.dart';
+import '../screens/search_screen.dart';
+import '../screens/property_detail_screen.dart';
+import '../screens/wishlist_screen.dart';
+import '../screens/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -201,11 +201,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // Properties List
+            // Properties List - DIPERBAIKI
             StreamBuilder<List<PropertyModel>>(
               stream: _selectedCategory == 'All'
-                  ? _propertyService.getAllProperties()
-                  : _propertyService.searchByType(_selectedCategory.toLowerCase()),
+                  ? _propertyService.getAllProperties() // Semua property
+                  : _propertyService.searchByType(_selectedCategory.toLowerCase()), // Filter by type
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const SliverToBoxAdapter(
@@ -213,6 +213,33 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Padding(
                         padding: EdgeInsets.all(32),
                         child: CircularProgressIndicator(),
+                      ),
+                    ),
+                  );
+                }
+
+                if (snapshot.hasError) {
+                  return SliverToBoxAdapter(
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Terjadi kesalahan',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -236,6 +263,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Coba tambahkan properti baru',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[500],
                               ),
                             ),
                           ],

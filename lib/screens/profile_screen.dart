@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:luxora_app/services/auth_service.dart';
-import 'package:luxora_app/services/booking_service.dart';
-import 'package:luxora_app/models/user_model.dart';
-import 'package:luxora_app/models/booking_model.dart';
-import 'package:luxora_app/config/app_theme.dart';
-import 'package:luxora_app/screens/login_screen.dart';
-import 'package:luxora_app/screens/add_property_screen.dart';
+import '../../services/auth_service.dart';
+import '../../services/booking_service.dart';
+import '../../models/user_model.dart';
+import '../../models/booking_model.dart';
+import '../../config/app_theme.dart';
+import '../screens/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -54,13 +53,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () async {
-              final authService = Provider.of<AuthService>(context, listen: false);
+              final authService =
+                  Provider.of<AuthService>(context, listen: false);
               await authService.signOut();
-              
+
               if (mounted) {
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const LoginScreen(),
+                  ),
                   (route) => false,
                 );
               }
@@ -83,18 +85,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (user == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Profile')),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.person_outline, size: 64, color: Colors.grey[400]),
-              const SizedBox(height: 16),
-              Text(
-                'Silakan login untuk melihat profile',
-                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-              ),
-            ],
-          ),
+        body: const Center(
+          child: Text('Silakan login untuk melihat profile'),
         ),
       );
     }
@@ -104,7 +96,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ? const Center(child: CircularProgressIndicator())
           : CustomScrollView(
               slivers: [
-                // App Bar with Profile Header
+                // ===== HEADER PROFILE =====
                 SliverAppBar(
                   expandedHeight: 200,
                   pinned: true,
@@ -121,34 +113,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             CircleAvatar(
                               radius: 50,
                               backgroundColor: Colors.white,
-                              backgroundImage: user.photoURL != null
-                                  ? NetworkImage(user.photoURL!)
-                                  : null,
-                              child: user.photoURL == null
-                                  ? Text(
-                                      _userData?.fullName[0].toUpperCase() ?? 'U',
-                                      style: const TextStyle(
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppTheme.primaryColor,
-                                      ),
-                                    )
-                                  : null,
+                              child: Text(
+                                _userData?.fullName[0].toUpperCase() ?? 'U',
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ),
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              _userData?.fullName ?? user.displayName ?? 'User',
+                              _userData?.fullName ?? 'User',
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
                             ),
-                            const SizedBox(height: 4),
                             Text(
                               _userData?.email ?? user.email ?? '',
                               style: const TextStyle(
-                                fontSize: 14,
                                 color: Colors.white70,
                               ),
                             ),
@@ -159,14 +144,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
 
-                // Profile Content
+                // ===== INFO AKUN =====
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Account Info
                         const Text(
                           'Informasi Akun',
                           style: TextStyle(
@@ -188,10 +172,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ? '${_userData!.createdAt.day}/${_userData!.createdAt.month}/${_userData!.createdAt.year}'
                               : '-',
                         ),
-
                         const SizedBox(height: 24),
-
-                        // Bookings Section
                         const Text(
                           'Pemesanan Saya',
                           style: TextStyle(
@@ -205,15 +186,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
 
-                // Bookings List
+                // ===== LIST BOOKING =====
                 StreamBuilder<List<BookingModel>>(
                   stream: _bookingService.getUserBookings(user.uid),
                   builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
+                    if (snapshot.connectionState ==
+                        ConnectionState.waiting) {
                       return const SliverToBoxAdapter(
-                        child: Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(32),
+                        child: Padding(
+                          padding: EdgeInsets.all(32),
+                          child: Center(
                             child: CircularProgressIndicator(),
                           ),
                         ),
@@ -221,85 +203,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     }
 
                     if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return SliverToBoxAdapter(
-                        child: Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(32),
-                            child: Column(
-                              children: [
-                                Icon(
-                                  Icons.receipt_long_outlined,
-                                  size: 64,
-                                  color: Colors.grey[400],
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'Belum ada pemesanan',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
+                      return const SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.all(32),
+                          child: Center(
+                            child: Text('Belum ada pemesanan'),
                           ),
                         ),
                       );
                     }
-
-                    final bookings = snapshot.data!;
 
                     return SliverPadding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate(
                           (context, index) {
-                            final booking = bookings[index];
-                            return _BookingCard(booking: booking);
+                            return _BookingCard(
+                              booking: snapshot.data![index],
+                            );
                           },
-                          childCount: bookings.length,
+                          childCount: snapshot.data!.length,
                         ),
                       ),
                     );
                   },
                 ),
 
-                // Settings Section
+                // ===== PENGATURAN =====
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 24),
-                        const Text(
-                          'Kelola Properti',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // ADD PROPERTY BUTTON - BARU!
-                        _SettingsItem(
-                          icon: Icons.add_business,
-                          title: 'Tambah Properti Baru',
-                          onTap: () async {
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const AddPropertyScreen(),
-                              ),
-                            );
-                            
-                            if (result == true) {
-                              // Refresh if needed
-                              setState(() {});
-                            }
-                          },
-                        ),
-
                         const SizedBox(height: 24),
                         const Text(
                           'Pengaturan',
@@ -309,43 +245,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        
                         _SettingsItem(
                           icon: Icons.edit,
                           title: 'Edit Profile',
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Fitur segera hadir'),
-                              ),
-                            );
-                          },
+                          onTap: () {},
                         ),
-                        
                         _SettingsItem(
                           icon: Icons.lock,
                           title: 'Ubah Password',
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Fitur segera hadir'),
-                              ),
-                            );
-                          },
+                          onTap: () {},
                         ),
-                        
-                        _SettingsItem(
-                          icon: Icons.help,
-                          title: 'Bantuan',
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Fitur segera hadir'),
-                              ),
-                            );
-                          },
-                        ),
-                        
                         _SettingsItem(
                           icon: Icons.info,
                           title: 'Tentang Luxora',
@@ -354,27 +263,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               context: context,
                               applicationName: 'Luxora',
                               applicationVersion: '1.0.0',
-                              applicationIcon: const Icon(
-                                Icons.hotel,
-                                size: 48,
-                                color: AppTheme.primaryColor,
-                              ),
-                              children: [
-                                const Text(
-                                  'Aplikasi pemesanan hotel dan villa terpercaya',
-                                ),
-                              ],
                             );
                           },
                         ),
-                        
                         _SettingsItem(
                           icon: Icons.logout,
                           title: 'Logout',
                           onTap: _logout,
                           textColor: AppTheme.errorColor,
                         ),
-
                         const SizedBox(height: 32),
                       ],
                     ),
@@ -385,6 +282,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
+
+/* =================== WIDGET PENDUKUNG =================== */
 
 class _ProfileInfoCard extends StatelessWidget {
   final IconData icon;
@@ -409,27 +308,17 @@ class _ProfileInfoCard extends StatelessWidget {
         children: [
           Icon(icon, color: AppTheme.primaryColor),
           const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontSize: 12)),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
@@ -442,28 +331,6 @@ class _BookingCard extends StatelessWidget {
 
   const _BookingCard({required this.booking});
 
-  Color _getStatusColor() {
-    switch (booking.bookingStatus) {
-      case 'confirmed':
-        return AppTheme.successColor;
-      case 'cancelled':
-        return AppTheme.errorColor;
-      default:
-        return AppTheme.warningColor;
-    }
-  }
-
-  String _getStatusText() {
-    switch (booking.bookingStatus) {
-      case 'confirmed':
-        return 'Dikonfirmasi';
-      case 'cancelled':
-        return 'Dibatalkan';
-      default:
-        return booking.bookingStatus;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -473,45 +340,18 @@ class _BookingCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Booking ID: ${booking.bookingId.substring(0, 8)}...',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor().withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _getStatusText(),
-                    style: TextStyle(
-                      color: _getStatusColor(),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
             Text(
-              '${booking.checkInDate.day}/${booking.checkInDate.month}/${booking.checkInDate.year} - ${booking.checkOutDate.day}/${booking.checkOutDate.month}/${booking.checkOutDate.year}',
-              style: TextStyle(color: Colors.grey[600]),
+              'Booking ID: ${booking.bookingId.substring(0, 8)}...',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${booking.checkInDate.day}/${booking.checkInDate.month}/${booking.checkInDate.year}'
+              ' - ${booking.checkOutDate.day}/${booking.checkOutDate.month}/${booking.checkOutDate.year}',
             ),
             const SizedBox(height: 4),
             Text(
               '${booking.totalNights} malam • ${booking.numberOfGuests} tamu',
-              style: TextStyle(color: Colors.grey[600]),
             ),
             const SizedBox(height: 8),
             Text(
@@ -544,21 +384,11 @@ class _SettingsItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: Icon(icon, color: textColor ?? AppTheme.primaryColor),
-        title: Text(
-          title,
-          style: TextStyle(color: textColor),
-        ),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        tileColor: Colors.grey[50],
-      ),
+    return ListTile(
+      leading: Icon(icon, color: textColor ?? AppTheme.primaryColor),
+      title: Text(title, style: TextStyle(color: textColor)),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: onTap,
     );
   }
 }

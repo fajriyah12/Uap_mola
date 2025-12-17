@@ -150,7 +150,7 @@ class _BookingScreenState extends State<BookingScreen> {
       return;
     }
 
-    // Create booking
+    // Create booking - DIPERBAIKI dengan paymentStatus dan bookingStatus yang benar
     final booking = BookingModel(
       bookingId: '',
       userId: userId,
@@ -161,6 +161,8 @@ class _BookingScreenState extends State<BookingScreen> {
       totalNights: _totalNights,
       totalPrice: _totalPrice,
       paymentMethod: _paymentMethod,
+      paymentStatus: 'paid', // SET SEBAGAI PAID (simulasi pembayaran berhasil)
+      bookingStatus: 'confirmed', // SET SEBAGAI CONFIRMED
       guestName: _guestNameController.text.trim(),
       guestPhone: _guestPhoneController.text.trim(),
       guestEmail: _guestEmailController.text.trim(),
@@ -170,17 +172,24 @@ class _BookingScreenState extends State<BookingScreen> {
       createdAt: DateTime.now(),
     );
 
+    print('Creating booking with:');
+    print('- userId: $userId');
+    print('- propertyId: ${widget.property.propertyId}');
+    print('- paymentStatus: paid');
+    print('- bookingStatus: confirmed');
+
     final bookingId = await _bookingService.createBooking(booking);
 
     setState(() => _isLoading = false);
 
     if (bookingId != null) {
       if (mounted) {
+        // Show success dialog
         showDialog(
           context: context,
           barrierDismissible: false,
           builder: (context) => AlertDialog(
-            title: const Text('Pemesanan Berhasil!'),
+            title: const Text('Pemesanan Berhasil! 🎉'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -190,11 +199,21 @@ class _BookingScreenState extends State<BookingScreen> {
                   size: 64,
                 ),
                 const SizedBox(height: 16),
-                Text('Booking ID: $bookingId'),
+                Text('Booking ID: ${bookingId.substring(0, 8)}...'),
                 const SizedBox(height: 8),
                 const Text(
-                  'Silakan lakukan pembayaran sesuai metode yang dipilih',
+                  '✅ Pembayaran berhasil dikonfirmasi',
+                  style: TextStyle(
+                    color: AppTheme.successColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                   textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Pemesanan Anda telah dikonfirmasi dan dapat dilihat di riwayat pemesanan',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12),
                 ),
               ],
             ),
@@ -203,7 +222,6 @@ class _BookingScreenState extends State<BookingScreen> {
                 onPressed: () {
                   Navigator.of(context).pop(); // Close dialog
                   Navigator.of(context).pop(); // Back to detail
-                  Navigator.of(context).pop(); // Back to home
                 },
                 child: const Text('OK'),
               ),
@@ -215,7 +233,7 @@ class _BookingScreenState extends State<BookingScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Gagal membuat pemesanan'),
+            content: Text('Gagal membuat pemesanan. Silakan coba lagi.'),
             backgroundColor: AppTheme.errorColor,
           ),
         );
