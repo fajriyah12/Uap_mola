@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:luxora_app/config/app_theme.dart';
 import 'package:luxora_app/utils/validators.dart';
-import 'package:luxora_app/screens/login_screen.dart';
+import 'package:luxora_app/screens/auth/login_screen.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});

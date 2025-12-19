@@ -5,9 +5,34 @@ import '../config/firebase_config.dart';
 class BookingService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Create Booking - DIPERBAIKI
+  //normalisasi tanggal (hilangkan jam, menit, detik)
+  DateTime normalizeDate(DateTime date) {
+    return DateTime(date.year, date.month, date.day);
+  }
+
+  // Create Booking dengan cek availability
   Future<String?> createBooking(BookingModel booking) async {
     try {
+      // Normalize tanggal checkIn & checkOut
+      DateTime checkIn = normalizeDate(booking.checkInDate);
+      DateTime checkOut = normalizeDate(booking.checkOutDate);
+
+      // Pastikan tanggal checkIn < checkOut
+      if (!checkIn.isBefore(checkOut)) {
+        return 'Tanggal check-in harus sebelum check-out';
+      }
+
+      // Cek ketersediaan property
+      bool available = await checkAvailability(
+        propertyId: booking.propertyId,
+        checkIn: checkIn,
+        checkOut: checkOut,
+      );
+
+      if (!available) {
+        return 'Properti tidak tersedia pada tanggal yang dipilih';
+      }
+
       // Generate ID otomatis dari Firestore
       DocumentReference docRef = _firestore
           .collection(FirebaseConfig.bookingsCollection)
@@ -16,6 +41,9 @@ class BookingService {
       BookingModel newBooking = booking.copyWith(
         bookingId: docRef.id,
         createdAt: DateTime.now(),
+        bookingStatus: 'confirmed', // default langsung confirmed
+        checkInDate: checkIn,
+        checkOutDate: checkOut,
       );
 
       await docRef.set(newBooking.toMap());
@@ -24,6 +52,48 @@ class BookingService {
     } catch (e) {
       print('Error creating booking: $e');
       return null;
+    }
+  }
+
+  // Check Availability - fix
+  Future<bool> checkAvailability({
+    required String propertyId,
+    required DateTime checkIn,
+    required DateTime checkOut,
+  }) async {
+    try {
+      QuerySnapshot snapshot = await _firestore
+          .collection(FirebaseConfig.bookingsCollection)
+          .where('propertyId', isEqualTo: propertyId)
+          .where('bookingStatus', isEqualTo: 'confirmed')
+          .get();
+
+      for (var doc in snapshot.docs) {
+        BookingModel booking = BookingModel.fromFirestore(doc);
+
+        // Normalize tanggal Firestore
+        DateTime existingCheckIn = normalizeDate(booking.checkInDate);
+        DateTime existingCheckOut = normalizeDate(booking.checkOutDate);
+
+        // Debug log
+        print(
+            'Existing: $existingCheckIn - $existingCheckOut, Requested: $checkIn - $checkOut');
+
+        // Cek overlap
+        bool isOverlap =
+            checkIn.isBefore(existingCheckOut) && checkOut.isAfter(existingCheckIn);
+
+        if (isOverlap) {
+          print('Overlap ditemukan, properti tidak tersedia');
+          return false;
+        }
+      }
+
+      print('Tidak ada overlap, properti tersedia');
+      return true;
+    } catch (e) {
+      print('Error checking availability: $e');
+      return false;
     }
   }
 
@@ -57,45 +127,6 @@ class BookingService {
             .toList());
   }
 
-  // Get Property Bookings (untuk owner)
-  Stream<List<BookingModel>> getPropertyBookings(String propertyId) {
-    return _firestore
-        .collection(FirebaseConfig.bookingsCollection)
-        .where('propertyId', isEqualTo: propertyId)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => BookingModel.fromFirestore(doc))
-            .toList());
-  }
-
-  // Get Upcoming Bookings
-  Stream<List<BookingModel>> getUpcomingBookings(String userId) {
-    return _firestore
-        .collection(FirebaseConfig.bookingsCollection)
-        .where('userId', isEqualTo: userId)
-        .where('bookingStatus', isEqualTo: 'confirmed')
-        .where('checkInDate', isGreaterThanOrEqualTo: Timestamp.now())
-        .orderBy('checkInDate', descending: false)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => BookingModel.fromFirestore(doc))
-            .toList());
-  }
-
-  // Get Past Bookings
-  Stream<List<BookingModel>> getPastBookings(String userId) {
-    return _firestore
-        .collection(FirebaseConfig.bookingsCollection)
-        .where('userId', isEqualTo: userId)
-        .where('checkOutDate', isLessThan: Timestamp.now())
-        .orderBy('checkOutDate', descending: true)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => BookingModel.fromFirestore(doc))
-            .toList());
-  }
-
   // Update Booking Status
   Future<String?> updateBookingStatus({
     required String bookingId,
@@ -116,26 +147,6 @@ class BookingService {
     }
   }
 
-  // Update Payment Status
-  Future<String?> updatePaymentStatus({
-    required String bookingId,
-    required String paymentStatus,
-  }) async {
-    try {
-      await _firestore
-          .collection(FirebaseConfig.bookingsCollection)
-          .doc(bookingId)
-          .update({
-        'paymentStatus': paymentStatus,
-        'updatedAt': Timestamp.fromDate(DateTime.now()),
-      });
-      return null; // Success
-    } catch (e) {
-      print('Error updating payment status: $e');
-      return 'Gagal update pembayaran: ${e.toString()}';
-    }
-  }
-
   // Cancel Booking
   Future<String?> cancelBooking(String bookingId) async {
     try {
@@ -146,53 +157,10 @@ class BookingService {
         'bookingStatus': 'cancelled',
         'updatedAt': Timestamp.fromDate(DateTime.now()),
       });
-      return null; // Success
+      return null; 
     } catch (e) {
       print('Error cancelling booking: $e');
       return 'Gagal membatalkan booking: ${e.toString()}';
     }
-  }
-
-  // Check Availability
-  Future<bool> checkAvailability({
-    required String propertyId,
-    required DateTime checkIn,
-    required DateTime checkOut,
-  }) async {
-    try {
-      QuerySnapshot snapshot = await _firestore
-          .collection(FirebaseConfig.bookingsCollection)
-          .where('propertyId', isEqualTo: propertyId)
-          .where('bookingStatus', isEqualTo: 'confirmed')
-          .get();
-
-      for (var doc in snapshot.docs) {
-        BookingModel booking = BookingModel.fromFirestore(doc);
-        
-        // Check overlap
-        if (checkIn.isBefore(booking.checkOutDate) &&
-            checkOut.isAfter(booking.checkInDate)) {
-          return false; // Not available
-        }
-      }
-
-      return true; // Available
-    } catch (e) {
-      print('Error checking availability: $e');
-      return false;
-    }
-  }
-
-  // Calculate Total Nights
-  int calculateTotalNights(DateTime checkIn, DateTime checkOut) {
-    return checkOut.difference(checkIn).inDays;
-  }
-
-  // Calculate Total Price
-  double calculateTotalPrice({
-    required double pricePerNight,
-    required int totalNights,
-  }) {
-    return pricePerNight * totalNights;
   }
 }

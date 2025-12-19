@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../services/auth_service.dart';
-import '../../services/property_service.dart';
-import '../../models/property_model.dart';
-import '../../config/app_theme.dart';
-import 'package:luxora_app/screens/search_screen.dart';
-import '../screens/property_detail_screen.dart';
-import '../screens/wishlist_screen.dart';
+import '../../../services/auth_service.dart';
+import '../../../services/property_service.dart';
+import '../../../models/property_model.dart';
+import '../../../config/app_theme.dart';
+import 'package:luxora_app/screens/user/search_screen.dart';
+import 'property_detail_screen.dart';
+import 'wishlist_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool showBottomNav;

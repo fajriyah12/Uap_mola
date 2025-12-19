@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../services/auth_service.dart';
-import '../../services/booking_service.dart';
-import '../../services/property_service.dart';
-import '../../models/booking_model.dart';
-import '../../models/property_model.dart';
-import '../../config/app_theme.dart';
-import '../screens/property_detail_screen.dart';
+import '../../../services/auth_service.dart';
+import '../../../services/booking_service.dart';
+import '../../../services/property_service.dart';
+import '../../../models/booking_model.dart';
+import '../../../models/property_model.dart';
+import '../../../config/app_theme.dart';
+import '../user/property_detail_screen.dart';
 
 class BookingListScreen extends StatefulWidget {
   final bool showBottomNav;

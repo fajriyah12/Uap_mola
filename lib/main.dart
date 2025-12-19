@@ -13,7 +13,7 @@ import 'services/wishlist_service.dart';
 import 'services/property_service.dart';
 
 // SCREENS
-import 'screens/splash_screen.dart';
+import 'screens/auth/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -6,7 +6,7 @@ import 'package:luxora_app/services/wishlist_service.dart';
 import 'package:luxora_app/services/review_service.dart';
 import 'package:luxora_app/models/review_model.dart';
 import 'package:luxora_app/config/app_theme.dart';
-import 'package:luxora_app/screens/booking_screen.dart';
+import 'package:luxora_app/screens/user/booking_screen.dart';
 
 class PropertyDetailScreen extends StatefulWidget {
   final PropertyModel property;

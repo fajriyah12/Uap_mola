@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import 'login_admin_screen.dart';
+import '../auth/login_admin_screen.dart';
 import 'add_hotel_screen.dart';
 import 'admin_property_list_screen.dart';
 

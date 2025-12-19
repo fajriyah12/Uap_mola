@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:luxora_app/services/auth_service.dart';
-import 'package:luxora_app/screens/signup_screen.dart';
-import 'package:luxora_app/screens/home_screen.dart';
-import 'package:luxora_app/screens/login_admin_screen.dart';
+import 'package:luxora_app/screens/auth/signup_screen.dart';
+import 'package:luxora_app/screens/user/home_screen.dart';
+import 'package:luxora_app/screens/auth/login_admin_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

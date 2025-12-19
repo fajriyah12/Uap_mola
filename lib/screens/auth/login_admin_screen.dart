@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'admin_dashboard_screen.dart';
+import '../admin/admin_dashboard_screen.dart';
 import 'login_screen.dart'; // ⬅️ GANTI SESUAI FILE LOGIN USER
 
 class AdminLoginScreen extends StatefulWidget {

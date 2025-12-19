@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../services/property_service.dart';
-import '../../models/property_model.dart';
-import '../../config/app_theme.dart';
-import '../screens/property_detail_screen.dart';
+import '../../../services/property_service.dart';
+import '../../../models/property_model.dart';
+import '../../../config/app_theme.dart';
+import 'property_detail_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   final bool showBottomNav;
@@ -133,7 +133,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                   items: [
                     const DropdownMenuItem(value: null, child: Text('Semua Kota')),
-                    ...['Jakarta', 'Bandung', 'Bali', 'Yogyakarta', 'Surabaya']
+                    ...['Jakarta', 'Bandung', 'Bali', 'Yogyakarta', 'Surabaya', 'Lampung', 'Solo', 'Palembang']
                         .map((city) => DropdownMenuItem(
                               value: city,
                               child: Text(city),

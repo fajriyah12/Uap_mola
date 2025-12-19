@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../services/auth_service.dart';
-import '../../models/user_model.dart';
-import '../../config/app_theme.dart';
-import '../screens/login_screen.dart';
-import '../screens/edit_profile_screen.dart';
-import '../screens/change_password_screen.dart';
-import '../screens/home_screen.dart';
-import '../screens/search_screen.dart';
-import '../screens/booking_screen.dart';
-import '../../models/property_model.dart'; 
-import '../screens/booking_list_screen.dart';
+import '../../../services/auth_service.dart';
+import '../../../models/user_model.dart';
+import '../../../config/app_theme.dart';
+import '../auth/login_screen.dart';
+import 'edit_profile_screen.dart';
+import 'change_password_screen.dart';
+import 'home_screen.dart';
+import 'search_screen.dart';
+import 'booking_screen.dart';
+import '../../../models/property_model.dart'; 
+import '../admin/booking_list_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final bool showBottomNav;

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:luxora_app/config/app_theme.dart';
-import 'package:luxora_app/screens/home_screen.dart';
-import 'package:luxora_app/screens/search_screen.dart';
-import 'package:luxora_app/screens/booking_list_screen.dart';
-import 'package:luxora_app/screens/profile_screen.dart';
+import 'package:luxora_app/screens/user/home_screen.dart';
+import 'package:luxora_app/screens/user/search_screen.dart';
+import 'package:luxora_app/screens/admin/booking_list_screen.dart';
+import 'package:luxora_app/screens/user/profile_screen.dart';
 
 class MainNavigation extends StatefulWidget {
   final int initialIndex;

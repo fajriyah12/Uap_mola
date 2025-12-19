@@ -5,7 +5,7 @@ import 'package:luxora_app/services/wishlist_service.dart';
 import 'package:luxora_app/services/property_service.dart';
 import 'package:luxora_app/models/wishlist_model.dart';
 import 'package:luxora_app/models/property_model.dart';
-import 'package:luxora_app/screens/property_detail_screen.dart';
+import 'package:luxora_app/screens/user/property_detail_screen.dart';
 
 class WishlistScreen extends StatefulWidget {
   const WishlistScreen({super.key});
