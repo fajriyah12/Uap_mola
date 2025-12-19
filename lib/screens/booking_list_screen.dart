@@ -9,7 +9,12 @@ import '../../config/app_theme.dart';
 import '../screens/property_detail_screen.dart';
 
 class BookingListScreen extends StatefulWidget {
-  const BookingListScreen({super.key});
+  final bool showBottomNav;
+
+  const BookingListScreen({
+    super.key,
+    this.showBottomNav = true,
+  });
 
   @override
   State<BookingListScreen> createState() => _BookingListScreenState();

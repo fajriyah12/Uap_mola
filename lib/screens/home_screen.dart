@@ -4,14 +4,17 @@ import '../../services/auth_service.dart';
 import '../../services/property_service.dart';
 import '../../models/property_model.dart';
 import '../../config/app_theme.dart';
-import '../screens/search_screen.dart';
+import 'package:luxora_app/screens/search_screen.dart';
 import '../screens/property_detail_screen.dart';
 import '../screens/wishlist_screen.dart';
-import '../screens/profile_screen.dart';
-import '../screens/booking_list_screen.dart'; // ✅ BARU
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final bool showBottomNav;
+
+  const HomeScreen({
+    super.key,
+    this.showBottomNav = true,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -19,43 +22,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final PropertyService _propertyService = PropertyService();
-  int _selectedIndex = 0;
   String _selectedCategory = 'All';
 
   final List<String> _categories = ['All', 'Hotel', 'Villa', 'Homestay'];
-
-  // ===============================
-  // ✅ FIXED BOTTOM NAV BOOKING
-  // ===============================
-  void _onBottomNavTapped(int index) {
-    if (index == 0) return;
-
-    setState(() => _selectedIndex = index);
-
-    switch (index) {
-      case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const SearchScreen()),
-        ).then((_) => setState(() => _selectedIndex = 0));
-        break;
-
-      case 2:
-        // ✅ BOOKING LIST / HISTORY (BUKAN BookingScreen)
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const BookingListScreen()),
-        ).then((_) => setState(() => _selectedIndex = 0));
-        break;
-
-      case 3:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const ProfileScreen()),
-        ).then((_) => setState(() => _selectedIndex = 0));
-        break;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
               floating: true,
               backgroundColor: Colors.white,
               elevation: 0,
+              automaticallyImplyLeading: false, 
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -137,8 +107,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.search,
-                            color: AppTheme.textSecondary),
+                        const Icon(
+                          Icons.search,
+                          color: AppTheme.textSecondary,
+                        ),
                         const SizedBox(width: 12),
                         Text(
                           'Cari hotel atau villa...',
@@ -251,45 +223,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-
-      // ===============================
-      // BOTTOM NAVIGATION
-      // ===============================
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onBottomNavTapped,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppTheme.primaryColor,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search_outlined),
-            activeIcon: Icon(Icons.search),
-            label: 'Search',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bookmark_border),
-            activeIcon: Icon(Icons.bookmark),
-            label: 'Booking',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
     );
   }
 }
 
 // ===============================
-// PROPERTY CARD (TIDAK DIUBAH)
+// PROPERTY CARD
 // ===============================
 class _PropertyCard extends StatelessWidget {
   final PropertyModel property;
@@ -322,21 +261,65 @@ class _PropertyCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ===============================
+            // PROPERTY IMAGE
+            // ===============================
             ClipRRect(
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(16)),
-              child: Image.network(
-                property.images.first,
-                height: 120,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+              child: property.images.isNotEmpty
+                  ? Image.network(
+                      property.images.first,
+                      height: 120,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 120,
+                          color: Colors.grey[300],
+                          child: const Icon(
+                            Icons.hotel,
+                            size: 40,
+                            color: Colors.grey,
+                          ),
+                        );
+                      },
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          height: 120,
+                          color: Colors.grey[200],
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                  : null,
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                  : Container(
+                      height: 120,
+                      color: Colors.grey[300],
+                      child: const Icon(
+                        Icons.hotel,
+                        size: 40,
+                        color: Colors.grey,
+                      ),
+                    ),
             ),
+
+            // ===============================
+            // PROPERTY INFO
+            // ===============================
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Property Name
                   Text(
                     property.name,
                     maxLines: 2,
@@ -346,11 +329,38 @@ class _PropertyCard extends StatelessWidget {
                       fontSize: 14,
                     ),
                   ),
+                  const SizedBox(height: 4),
+
+                  // Location
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 14,
+                        color: Colors.grey[600],
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          property.city,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 8),
+
+                  // Price
                   Text(
                     'Rp ${property.pricePerNight.toStringAsFixed(0)}/malam',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
+                      fontSize: 14,
                       color: AppTheme.primaryColor,
                     ),
                   ),

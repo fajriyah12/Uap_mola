@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
-import '../screens/home_screen.dart';
 import '../screens/login_screen.dart';
+import '../screens/main_navigation.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
@@ -23,7 +23,7 @@ class AuthWrapper extends StatelessWidget {
 
         // ✅ Sudah login
         if (snapshot.hasData) {
-          return const HomeScreen();
+          return const MainNavigation(); // ✅ GANTI INI
         }
 
         // ❌ Belum login

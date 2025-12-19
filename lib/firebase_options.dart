@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'luxora-app-6c7c7.firebasestorage.app',
     measurementId: 'G-G5TLPZTF66',
   );
+
 }

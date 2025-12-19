@@ -5,7 +5,12 @@ import '../../config/app_theme.dart';
 import '../screens/property_detail_screen.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  final bool showBottomNav;
+
+  const SearchScreen({
+    super.key,
+    this.showBottomNav = true,
+  });
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();

@@ -4,9 +4,21 @@ import '../../services/auth_service.dart';
 import '../../models/user_model.dart';
 import '../../config/app_theme.dart';
 import '../screens/login_screen.dart';
+import '../screens/edit_profile_screen.dart';
+import '../screens/change_password_screen.dart';
+import '../screens/home_screen.dart';
+import '../screens/search_screen.dart';
+import '../screens/booking_screen.dart';
+import '../../models/property_model.dart'; 
+import '../screens/booking_list_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final bool showBottomNav;
+
+  const ProfileScreen({
+    super.key,
+    this.showBottomNav = true,
+  });
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -15,6 +27,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   UserModel? _userData;
   bool _isLoading = true;
+  int _selectedIndex = 3; // Default ke halaman Profile (index 3)
 
   @override
   void initState() {
@@ -35,6 +48,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } else {
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _navigateToEditProfile() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const EditProfileScreen(),
+      ),
+    );
+
+    // Reload data if profile was updated
+    if (result == true) {
+      _loadUserData();
+    }
+  }
+
+  Future<void> _navigateToChangePassword() async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const ChangePasswordScreen(),
+      ),
+    );
   }
 
   Future<void> _logout() async {
@@ -160,10 +196,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 16),
                         _ProfileInfoCard(
-                        icon: Icons.email,
-                        title: 'Email',
-                        value: _userData?.email ?? user.email ?? '-',
+                          icon: Icons.email,
+                          title: 'Email',
+                          value: _userData?.email ?? user.email ?? '-',
                         ),
+                        const SizedBox(height: 12),
                         _ProfileInfoCard(
                           icon: Icons.phone,
                           title: 'Nomor Telepon',
@@ -201,12 +238,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _SettingsItem(
                           icon: Icons.edit,
                           title: 'Edit Profile',
-                          onTap: () {},
+                          onTap: _navigateToEditProfile,
                         ),
                         _SettingsItem(
                           icon: Icons.lock,
                           title: 'Ubah Password',
-                          onTap: () {},
+                          onTap: _navigateToChangePassword,
+                        ),
+                        _SettingsItem(
+                          icon: Icons.help_outline,
+                          title: 'Bantuan & FAQ',
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Fitur akan segera hadir'),
+                              ),
+                            );
+                          },
                         ),
                         _SettingsItem(
                           icon: Icons.info,
@@ -216,6 +264,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               context: context,
                               applicationName: 'Luxora',
                               applicationVersion: '1.0.0',
+                              applicationLegalese: '© 2025 Luxora. All rights reserved.',
+                              children: [
+                                const SizedBox(height: 16),
+                                const Text(
+                                  'Luxora adalah platform booking hotel dan villa terpercaya di Indonesia.',
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                              ],
                             );
                           },
                         ),
