@@ -6,19 +6,13 @@ import '../../../config/app_theme.dart';
 import '../auth/login_screen.dart';
 import 'edit_profile_screen.dart';
 import 'change_password_screen.dart';
-import 'home_screen.dart';
-import 'search_screen.dart';
 import 'booking_screen.dart';
-import '../../../models/property_model.dart'; 
-import '../admin/booking_list_screen.dart';
+import '../../../models/property_model.dart';
 
 class ProfileScreen extends StatefulWidget {
   final bool showBottomNav;
 
-  const ProfileScreen({
-    super.key,
-    this.showBottomNav = true,
-  });
+  const ProfileScreen({super.key, this.showBottomNav = true});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -27,7 +21,6 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   UserModel? _userData;
   bool _isLoading = true;
-  int _selectedIndex = 3; // Default ke halaman Profile (index 3)
 
   @override
   void initState() {
@@ -53,9 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _navigateToEditProfile() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const EditProfileScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const EditProfileScreen()),
     );
 
     // Reload data if profile was updated
@@ -67,9 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _navigateToChangePassword() async {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const ChangePasswordScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
     );
   }
 
@@ -86,16 +75,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () async {
-              final authService =
-                  Provider.of<AuthService>(context, listen: false);
+              final authService = Provider.of<AuthService>(
+                context,
+                listen: false,
+              );
               await authService.signOut();
 
               if (mounted) {
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const LoginScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
                   (route) => false,
                 );
               }
@@ -118,9 +107,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (user == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Profile')),
-        body: const Center(
-          child: Text('Silakan login untuk melihat profile'),
-        ),
+        body: const Center(child: Text('Silakan login untuk melihat profile')),
       );
     }
 
@@ -129,53 +116,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ? const Center(child: CircularProgressIndicator())
           : CustomScrollView(
               slivers: [
-                // ===== HEADER PROFILE =====
                 SliverAppBar(
                   expandedHeight: 260,
                   pinned: true,
                   backgroundColor: Colors.transparent,
                   flexibleSpace: FlexibleSpaceBar(
-                    background: Container(
-                      decoration: const BoxDecoration(
-                        gradient: AppGradients.primaryGradient,
-                      ),
-                      child: SafeArea(
-                        bottom: false,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 32),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              CircleAvatar(
-                                radius: 50,
-                                backgroundColor: Colors.white,
-                                child: Text(
-                                  _userData?.fullName
-                                          ?.substring(0, 1)
-                                          .toUpperCase() ??
-                                      'U',
-                                  style: const TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.primaryColor,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                _userData?.fullName ?? 'User',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
+                    background: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.asset(
+                          'assets/images/back1.png',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(color: const Color(0xFFF5F0E6)); 
+                          },
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withOpacity(0.7),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
+                        SafeArea(
+                          bottom: false,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 32),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CircleAvatar(
+                                  radius: 50,
+                                  backgroundColor: Colors.white,
+                                  child: Text(
+                                    _userData?.fullName?.substring(0, 1).toUpperCase() ?? 'U',
+                                    style: const TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  _userData?.fullName ?? 'User',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -264,7 +266,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               context: context,
                               applicationName: 'Luxora',
                               applicationVersion: '1.0.0',
-                              applicationLegalese: '© 2025 Luxora. All rights reserved.',
+                              applicationLegalese:
+                                  '© 2025 Luxora. All rights reserved.',
                               children: [
                                 const SizedBox(height: 16),
                                 const Text(
@@ -321,10 +324,7 @@ class _ProfileInfoCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title, style: const TextStyle(fontSize: 12)),
-              Text(
-                value,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+              Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
             ],
           ),
         ],

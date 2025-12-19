@@ -5,7 +5,7 @@ import '../config/firebase_config.dart';
 class BookingService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  //normalisasi tanggal (hilangkan jam, menit, detik)
+  // Normalisasi tanggal (hilangkan jam, menit, detik)
   DateTime normalizeDate(DateTime date) {
     return DateTime(date.year, date.month, date.day);
   }
@@ -55,7 +55,7 @@ class BookingService {
     }
   }
 
-  // Check Availability - fix
+  // Check Availability - Fixed logic
   Future<bool> checkAvailability({
     required String propertyId,
     required DateTime checkIn,
@@ -77,11 +77,11 @@ class BookingService {
 
         // Debug log
         print(
-            'Existing: $existingCheckIn - $existingCheckOut, Requested: $checkIn - $checkOut');
+            'Existing: $existingCheckIn - $existingCheckOut | Requested: $checkIn - $checkOut');
 
-        // Cek overlap
-        bool isOverlap =
-            checkIn.isBefore(existingCheckOut) && checkOut.isAfter(existingCheckIn);
+        // Overlap logic: checkOut hari ini tidak dianggap overlap
+        bool isOverlap = checkIn.isBefore(existingCheckOut) &&
+            checkOut.isAfter(existingCheckIn);
 
         if (isOverlap) {
           print('Overlap ditemukan, properti tidak tersedia');
@@ -157,7 +157,7 @@ class BookingService {
         'bookingStatus': 'cancelled',
         'updatedAt': Timestamp.fromDate(DateTime.now()),
       });
-      return null; 
+      return null;
     } catch (e) {
       print('Error cancelling booking: $e');
       return 'Gagal membatalkan booking: ${e.toString()}';
