@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
-import '../../services/booking_service.dart';
 import '../../models/user_model.dart';
-import '../../models/booking_model.dart';
 import '../../config/app_theme.dart';
 import '../screens/login_screen.dart';
 
@@ -15,7 +13,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final BookingService _bookingService = BookingService();
   UserModel? _userData;
   bool _isLoading = true;
 
@@ -98,46 +95,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
               slivers: [
                 // ===== HEADER PROFILE =====
                 SliverAppBar(
-                  expandedHeight: 200,
+                  expandedHeight: 260,
                   pinned: true,
+                  backgroundColor: Colors.transparent,
                   flexibleSpace: FlexibleSpaceBar(
                     background: Container(
                       decoration: const BoxDecoration(
                         gradient: AppGradients.primaryGradient,
                       ),
                       child: SafeArea(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const SizedBox(height: 40),
-                            CircleAvatar(
-                              radius: 50,
-                              backgroundColor: Colors.white,
-                              child: Text(
-                                _userData?.fullName[0].toUpperCase() ?? 'U',
-                                style: const TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.primaryColor,
+                        bottom: false,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 32),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircleAvatar(
+                                radius: 50,
+                                backgroundColor: Colors.white,
+                                child: Text(
+                                  _userData?.fullName
+                                          ?.substring(0, 1)
+                                          .toUpperCase() ??
+                                      'U',
+                                  style: const TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.primaryColor,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              _userData?.fullName ?? 'User',
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                              const SizedBox(height: 12),
+                              Text(
+                                _userData?.fullName ?? 'User',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                            Text(
-                              _userData?.email ?? user.email ?? '',
-                              style: const TextStyle(
-                                color: Colors.white70,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -160,6 +160,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 16),
                         _ProfileInfoCard(
+                        icon: Icons.email,
+                        title: 'Email',
+                        value: _userData?.email ?? user.email ?? '-',
+                        ),
+                        _ProfileInfoCard(
                           icon: Icons.phone,
                           title: 'Nomor Telepon',
                           value: _userData?.phoneNumber ?? '-',
@@ -172,61 +177,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ? '${_userData!.createdAt.day}/${_userData!.createdAt.month}/${_userData!.createdAt.year}'
                               : '-',
                         ),
-                        const SizedBox(height: 24),
-                        const Text(
-                          'Pemesanan Saya',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
                       ],
                     ),
                   ),
-                ),
-
-                // ===== LIST BOOKING =====
-                StreamBuilder<List<BookingModel>>(
-                  stream: _bookingService.getUserBookings(user.uid),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return const SliverToBoxAdapter(
-                        child: Padding(
-                          padding: EdgeInsets.all(32),
-                          child: Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                        ),
-                      );
-                    }
-
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const SliverToBoxAdapter(
-                        child: Padding(
-                          padding: EdgeInsets.all(32),
-                          child: Center(
-                            child: Text('Belum ada pemesanan'),
-                          ),
-                        ),
-                      );
-                    }
-
-                    return SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            return _BookingCard(
-                              booking: snapshot.data![index],
-                            );
-                          },
-                          childCount: snapshot.data!.length,
-                        ),
-                      ),
-                    );
-                  },
                 ),
 
                 // ===== PENGATURAN =====
@@ -314,56 +267,11 @@ class _ProfileInfoCard extends StatelessWidget {
               Text(title, style: const TextStyle(fontSize: 12)),
               Text(
                 value,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _BookingCard extends StatelessWidget {
-  final BookingModel booking;
-
-  const _BookingCard({required this.booking});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Booking ID: ${booking.bookingId.substring(0, 8)}...',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${booking.checkInDate.day}/${booking.checkInDate.month}/${booking.checkInDate.year}'
-              ' - ${booking.checkOutDate.day}/${booking.checkOutDate.month}/${booking.checkOutDate.year}',
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${booking.totalNights} malam • ${booking.numberOfGuests} tamu',
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Rp ${booking.totalPrice.toStringAsFixed(0)}',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.primaryColor,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

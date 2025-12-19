@@ -57,7 +57,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error), backgroundColor: AppTheme.errorColor),
+          SnackBar(
+            content: Text(error),
+            backgroundColor: AppTheme.errorColor,
+          ),
         );
       }
     }
@@ -66,182 +69,213 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppGradients.primaryGradient,
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // App Bar
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    const Text(
-                      'Daftar Akun',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
+      body: Stack(
+        children: [
+          // ================= HEADER IMAGE =================
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.45,
+            width: double.infinity,
+            child: Image.asset(
+              'assets/images/back1.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+
+          // ================= OVERLAY =================
+          Container(
+            height: MediaQuery.of(context).size.height * 0.45,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.black.withOpacity(0.45),
+                  Colors.transparent,
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
+            ),
+          ),
 
-              // Form
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
-                    ),
+          // ================= BACK BUTTON =================
+          SafeArea(
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+
+          // ================= FORM CARD =================
+          DraggableScrollableSheet(
+            initialChildSize: 0.65,
+            minChildSize: 0.65,
+            maxChildSize: 0.85,
+            builder: (context, scrollController) {
+              return Container(
+                padding: const EdgeInsets.all(24),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(30),
                   ),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const SizedBox(height: 8),
-
-                          // Full Name Field
-                          TextFormField(
-                            controller: _fullNameController,
-                            textCapitalization: TextCapitalization.words,
-                            decoration: const InputDecoration(
-                              labelText: 'Nama Lengkap',
-                              prefixIcon: Icon(Icons.person_outline),
+                ),
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Container(
+                            width: 50,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[400],
+                              borderRadius: BorderRadius.circular(4),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Nama lengkap harus diisi';
-                              }
-                              return null;
-                            },
                           ),
-                          const SizedBox(height: 16),
+                        ),
+                        const SizedBox(height: 24),
 
-                          // Email Field
-                          TextFormField(
-                            controller: _emailController,
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(
-                              labelText: 'Email',
-                              prefixIcon: Icon(Icons.email_outlined),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Email harus diisi';
-                              }
-                              if (!value.contains('@')) {
-                                return 'Format email tidak valid';
-                              }
-                              return null;
-                            },
+                        const Text(
+                          'Create your account',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
                           ),
-                          const SizedBox(height: 16),
+                        ),
+                        const SizedBox(height: 24),
 
-                          // Phone Field
-                          TextFormField(
-                            controller: _phoneController,
-                            keyboardType: TextInputType.phone,
-                            decoration: const InputDecoration(
-                              labelText: 'Nomor Telepon',
-                              prefixIcon: Icon(Icons.phone_outlined),
-                              hintText: '08xxxxxxxxxx',
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Nomor telepon harus diisi';
-                              }
-                              if (value.length < 10) {
-                                return 'Nomor telepon tidak valid';
-                              }
-                              return null;
-                            },
+                        // ===== FULL NAME =====
+                        TextFormField(
+                          controller: _fullNameController,
+                          textCapitalization: TextCapitalization.words,
+                          decoration: const InputDecoration(
+                            hintText: 'Full Name',
+                            prefixIcon: Icon(Icons.person_outline),
                           ),
-                          const SizedBox(height: 16),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Nama lengkap harus diisi';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
 
-                          // Password Field
-                          TextFormField(
-                            controller: _passwordController,
-                            obscureText: _obscurePassword,
-                            decoration: InputDecoration(
-                              labelText: 'Password',
-                              prefixIcon: const Icon(Icons.lock_outline),
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility_outlined
-                                      : Icons.visibility_off_outlined,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _obscurePassword = !_obscurePassword;
-                                  });
-                                },
+                        // ===== EMAIL =====
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: const InputDecoration(
+                            hintText: 'Email Address',
+                            prefixIcon: Icon(Icons.email_outlined),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Email harus diisi';
+                            }
+                            if (!value.contains('@')) {
+                              return 'Format email tidak valid';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // ===== PHONE =====
+                        TextFormField(
+                          controller: _phoneController,
+                          keyboardType: TextInputType.phone,
+                          decoration: const InputDecoration(
+                            hintText: 'Phone Number',
+                            prefixIcon: Icon(Icons.phone_outlined),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Nomor telepon harus diisi';
+                            }
+                            if (value.length < 10) {
+                              return 'Nomor telepon tidak valid';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // ===== PASSWORD =====
+                        TextFormField(
+                          controller: _passwordController,
+                          obscureText: _obscurePassword,
+                          decoration: InputDecoration(
+                            hintText: 'Password',
+                            prefixIcon: const Icon(Icons.lock_outline),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
                               ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Password harus diisi';
-                              }
-                              if (value.length < 6) {
-                                return 'Password minimal 6 karakter';
-                              }
-                              return null;
-                            },
                           ),
-                          const SizedBox(height: 16),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Password harus diisi';
+                            }
+                            if (value.length < 6) {
+                              return 'Password minimal 6 karakter';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
 
-                          // Confirm Password Field
-                          TextFormField(
-                            controller: _confirmPasswordController,
-                            obscureText: _obscureConfirmPassword,
-                            decoration: InputDecoration(
-                              labelText: 'Konfirmasi Password',
-                              prefixIcon: const Icon(Icons.lock_outline),
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscureConfirmPassword
-                                      ? Icons.visibility_outlined
-                                      : Icons.visibility_off_outlined,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _obscureConfirmPassword =
-                                        !_obscureConfirmPassword;
-                                  });
-                                },
+                        // ===== CONFIRM PASSWORD =====
+                        TextFormField(
+                          controller: _confirmPasswordController,
+                          obscureText: _obscureConfirmPassword,
+                          decoration: InputDecoration(
+                            hintText: 'Confirm Password',
+                            prefixIcon: const Icon(Icons.lock_outline),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureConfirmPassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
                               ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscureConfirmPassword =
+                                      !_obscureConfirmPassword;
+                                });
+                              },
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Konfirmasi password harus diisi';
-                              }
-                              if (value != _passwordController.text) {
-                                return 'Password tidak sama';
-                              }
-                              return null;
-                            },
                           ),
-                          const SizedBox(height: 32),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Konfirmasi password harus diisi';
+                            }
+                            if (value != _passwordController.text) {
+                              return 'Password tidak sama';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 32),
 
-                          // Sign Up Button
-                          ElevatedButton(
+                        // ===== BUTTON =====
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
                             onPressed: _isLoading ? null : _signUp,
                             style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 16),
                             ),
                             child: _isLoading
                                 ? const SizedBox(
@@ -249,34 +283,35 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     width: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white),
+                                      valueColor:
+                                          AlwaysStoppedAnimation(Colors.white),
                                     ),
                                   )
-                                : const Text('Daftar'),
+                                : const Text('Sign Up'),
                           ),
-                          const SizedBox(height: 24),
+                        ),
 
-                          // Login Link
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text('Sudah punya akun? '),
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Masuk'),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                        const SizedBox(height: 24),
+
+                        // ===== LOGIN LINK =====
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text('Already have an account? '),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Login'),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-            ],
+              );
+            },
           ),
-        ),
+        ],
       ),
     );
   }

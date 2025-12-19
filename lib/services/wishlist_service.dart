@@ -36,7 +36,7 @@ class WishlistService {
         'wishlistId': docRef.id,
         'userId': userId,
         'propertyId': propertyId,
-        'addedAt': FieldValue.serverTimestamp(),
+        'addedAt': Timestamp.now(),
       };
 
       // Set data
@@ -88,7 +88,6 @@ class WishlistService {
     return _firestore
         .collection(FirebaseConfig.wishlistsCollection)
         .where('userId', isEqualTo: userId)
-        .orderBy('addedAt', descending: true)
         .snapshots()
         .map((snapshot) {
           print('Wishlist snapshot received: ${snapshot.docs.length} items');

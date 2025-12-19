@@ -5,28 +5,29 @@ import '../config/firebase_config.dart';
 class PropertyService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Get All Properties - DIPERBAIKI dengan error handling
+  // Get All Properties
   Stream<List<PropertyModel>> getAllProperties() {
     print('📊 Getting all properties...');
-    
+
     return _firestore
         .collection(FirebaseConfig.propertiesCollection)
         .where('isActive', isEqualTo: true)
         .snapshots()
         .map((snapshot) {
           print('✅ Received ${snapshot.docs.length} properties');
-          
-          return snapshot.docs.map((doc) {
-            try {
-              return PropertyModel.fromFirestore(doc);
-            } catch (e) {
-              print('❌ Error parsing property ${doc.id}: $e');
-              return null;
-            }
-          })
-          .where((property) => property != null)
-          .cast<PropertyModel>()
-          .toList();
+
+          return snapshot.docs
+              .map((doc) {
+                try {
+                  return PropertyModel.fromFirestore(doc);
+                } catch (e) {
+                  print('❌ Error parsing property ${doc.id}: $e');
+                  return null;
+                }
+              })
+              .where((property) => property != null)
+              .cast<PropertyModel>()
+              .toList();
         })
         .handleError((error) {
           print('❌ Error in getAllProperties stream: $error');
@@ -34,23 +35,23 @@ class PropertyService {
         });
   }
 
-  // Get Property by ID
+  // 🔥 GET PROPERTY BY ID (DIPERBAIKI)
   Future<PropertyModel?> getPropertyById(String propertyId) async {
     try {
-      print('🔍 Getting property by ID: $propertyId');
-      
-      DocumentSnapshot doc = await _firestore
+      print('Trying to fetch property with ID: $propertyId');
+      final snapshot = await _firestore
           .collection(FirebaseConfig.propertiesCollection)
-          .doc(propertyId)
+          .where('propertyId', isEqualTo: propertyId)
+          .limit(1)
           .get();
 
-      if (doc.exists) {
-        print('✅ Property found');
-        return PropertyModel.fromFirestore(doc);
+      if (snapshot.docs.isEmpty) {
+        print('❌ Property not found with propertyId: $propertyId');
+        return null;
       }
-      
-      print('❌ Property not found');
-      return null;
+
+      print('✅ Property found');
+      return PropertyModel.fromFirestore(snapshot.docs.first);
     } catch (e) {
       print('❌ Error getting property: $e');
       return null;
@@ -60,7 +61,7 @@ class PropertyService {
   // Search Properties by City
   Stream<List<PropertyModel>> searchByCity(String city) {
     print('🔍 Searching by city: $city');
-    
+
     return _firestore
         .collection(FirebaseConfig.propertiesCollection)
         .where('city', isEqualTo: city)
@@ -68,18 +69,19 @@ class PropertyService {
         .snapshots()
         .map((snapshot) {
           print('✅ Found ${snapshot.docs.length} properties in $city');
-          
-          return snapshot.docs.map((doc) {
-            try {
-              return PropertyModel.fromFirestore(doc);
-            } catch (e) {
-              print('❌ Error parsing property: $e');
-              return null;
-            }
-          })
-          .where((property) => property != null)
-          .cast<PropertyModel>()
-          .toList();
+
+          return snapshot.docs
+              .map((doc) {
+                try {
+                  return PropertyModel.fromFirestore(doc);
+                } catch (e) {
+                  print('❌ Error parsing property: $e');
+                  return null;
+                }
+              })
+              .where((property) => property != null)
+              .cast<PropertyModel>()
+              .toList();
         })
         .handleError((error) {
           print('❌ Error in searchByCity: $error');
@@ -87,10 +89,10 @@ class PropertyService {
         });
   }
 
-  // Search Properties by Type - DIPERBAIKI
+  // Search Properties by Type
   Stream<List<PropertyModel>> searchByType(String type) {
     print('🔍 Searching by type: $type');
-    
+
     return _firestore
         .collection(FirebaseConfig.propertiesCollection)
         .where('type', isEqualTo: type.toLowerCase())
@@ -98,18 +100,19 @@ class PropertyService {
         .snapshots()
         .map((snapshot) {
           print('✅ Found ${snapshot.docs.length} properties with type $type');
-          
-          return snapshot.docs.map((doc) {
-            try {
-              return PropertyModel.fromFirestore(doc);
-            } catch (e) {
-              print('❌ Error parsing property: $e');
-              return null;
-            }
-          })
-          .where((property) => property != null)
-          .cast<PropertyModel>()
-          .toList();
+
+          return snapshot.docs
+              .map((doc) {
+                try {
+                  return PropertyModel.fromFirestore(doc);
+                } catch (e) {
+                  print('❌ Error parsing property: $e');
+                  return null;
+                }
+              })
+              .where((property) => property != null)
+              .cast<PropertyModel>()
+              .toList();
         })
         .handleError((error) {
           print('❌ Error in searchByType: $error');
@@ -117,7 +120,7 @@ class PropertyService {
         });
   }
 
-  // Search Properties dengan Filter
+  // Search Properties with Filter
   Future<List<PropertyModel>> searchProperties({
     String? city,
     String? type,
@@ -127,7 +130,7 @@ class PropertyService {
   }) async {
     try {
       print('🔍 Searching properties with filters...');
-      
+
       Query query = _firestore
           .collection(FirebaseConfig.propertiesCollection)
           .where('isActive', isEqualTo: true);
@@ -142,7 +145,7 @@ class PropertyService {
 
       QuerySnapshot snapshot = await query.get();
       print('✅ Found ${snapshot.docs.length} properties');
-      
+
       List<PropertyModel> properties = snapshot.docs
           .map((doc) {
             try {
@@ -156,17 +159,17 @@ class PropertyService {
           .cast<PropertyModel>()
           .toList();
 
-      // Filter by price range
       if (minPrice != null) {
-        properties = properties.where((p) => p.pricePerNight >= minPrice).toList();
+        properties =
+            properties.where((p) => p.pricePerNight >= minPrice).toList();
       }
       if (maxPrice != null) {
-        properties = properties.where((p) => p.pricePerNight <= maxPrice).toList();
+        properties =
+            properties.where((p) => p.pricePerNight <= maxPrice).toList();
       }
-
-      // Filter by guests
       if (minGuests != null) {
-        properties = properties.where((p) => p.maxGuests >= minGuests).toList();
+        properties =
+            properties.where((p) => p.maxGuests >= minGuests).toList();
       }
 
       print('✅ Filtered to ${properties.length} properties');
@@ -177,30 +180,29 @@ class PropertyService {
     }
   }
 
-  // Get Featured Properties (Rating tinggi)
+  // Get Featured Properties
   Stream<List<PropertyModel>> getFeaturedProperties() {
     print('⭐ Getting featured properties...');
-    
+
     return _firestore
         .collection(FirebaseConfig.propertiesCollection)
         .where('isActive', isEqualTo: true)
         .snapshots()
         .map((snapshot) {
-          print('✅ Processing ${snapshot.docs.length} properties');
-          
-          var properties = snapshot.docs.map((doc) {
-            try {
-              return PropertyModel.fromFirestore(doc);
-            } catch (e) {
-              print('❌ Error parsing property: $e');
-              return null;
-            }
-          })
-          .where((property) => property != null)
-          .cast<PropertyModel>()
-          .where((p) => p.rating >= 4.5)
-          .toList();
-          
+          var properties = snapshot.docs
+              .map((doc) {
+                try {
+                  return PropertyModel.fromFirestore(doc);
+                } catch (e) {
+                  print('❌ Error parsing property: $e');
+                  return null;
+                }
+              })
+              .where((property) => property != null)
+              .cast<PropertyModel>()
+              .where((p) => p.rating >= 4.5)
+              .toList();
+
           properties.sort((a, b) => b.rating.compareTo(a.rating));
           return properties.take(10).toList();
         })
@@ -213,25 +215,24 @@ class PropertyService {
   // Get Properties by Owner
   Stream<List<PropertyModel>> getPropertiesByOwner(String ownerId) {
     print('👤 Getting properties by owner: $ownerId');
-    
+
     return _firestore
         .collection(FirebaseConfig.propertiesCollection)
         .where('ownerId', isEqualTo: ownerId)
         .snapshots()
         .map((snapshot) {
-          print('✅ Owner has ${snapshot.docs.length} properties');
-          
-          return snapshot.docs.map((doc) {
-            try {
-              return PropertyModel.fromFirestore(doc);
-            } catch (e) {
-              print('❌ Error parsing property: $e');
-              return null;
-            }
-          })
-          .where((property) => property != null)
-          .cast<PropertyModel>()
-          .toList();
+          return snapshot.docs
+              .map((doc) {
+                try {
+                  return PropertyModel.fromFirestore(doc);
+                } catch (e) {
+                  print('❌ Error parsing property: $e');
+                  return null;
+                }
+              })
+              .where((property) => property != null)
+              .cast<PropertyModel>()
+              .toList();
         })
         .handleError((error) {
           print('❌ Error in getPropertiesByOwner: $error');
@@ -239,20 +240,15 @@ class PropertyService {
         });
   }
 
-  // Create Property (untuk pemilik/mitra)
+  // Create Property
   Future<String?> createProperty(PropertyModel property) async {
     try {
-      print('➕ Creating property: ${property.name}');
-      
       await _firestore
           .collection(FirebaseConfig.propertiesCollection)
           .doc(property.propertyId)
           .set(property.toMap());
-      
-      print('✅ Property created successfully');
-      return null; // Success
+      return null;
     } catch (e) {
-      print('❌ Error creating property: $e');
       return 'Gagal menambahkan properti: ${e.toString()}';
     }
   }
@@ -260,17 +256,12 @@ class PropertyService {
   // Update Property
   Future<String?> updateProperty(PropertyModel property) async {
     try {
-      print('✏️ Updating property: ${property.propertyId}');
-      
       await _firestore
           .collection(FirebaseConfig.propertiesCollection)
           .doc(property.propertyId)
           .update(property.toMap());
-      
-      print('✅ Property updated successfully');
-      return null; // Success
+      return null;
     } catch (e) {
-      print('❌ Error updating property: $e');
       return 'Gagal update properti: ${e.toString()}';
     }
   }
@@ -278,36 +269,13 @@ class PropertyService {
   // Delete Property (soft delete)
   Future<String?> deleteProperty(String propertyId) async {
     try {
-      print('🗑️ Deleting property: $propertyId');
-      
       await _firestore
           .collection(FirebaseConfig.propertiesCollection)
           .doc(propertyId)
           .update({'isActive': false});
-      
-      print('✅ Property deleted successfully');
-      return null; // Success
+      return null;
     } catch (e) {
-      print('❌ Error deleting property: $e');
       return 'Gagal menghapus properti: ${e.toString()}';
     }
-  }
-
-  // Sort Properties by Price
-  Future<List<PropertyModel>> sortByPrice(List<PropertyModel> properties, {bool ascending = true}) async {
-    properties.sort((a, b) {
-      if (ascending) {
-        return a.pricePerNight.compareTo(b.pricePerNight);
-      } else {
-        return b.pricePerNight.compareTo(a.pricePerNight);
-      }
-    });
-    return properties;
-  }
-
-  // Sort Properties by Rating
-  Future<List<PropertyModel>> sortByRating(List<PropertyModel> properties) async {
-    properties.sort((a, b) => b.rating.compareTo(a.rating));
-    return properties;
   }
 }

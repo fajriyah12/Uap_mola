@@ -13,37 +13,33 @@ class WishlistModel {
     required this.addedAt,
   });
 
-  // Convert to Map - DIPERBAIKI untuk avoid assertion error
+  // TIDAK DIUBAH
   Map<String, dynamic> toMap() {
     return {
       'wishlistId': wishlistId,
       'userId': userId,
       'propertyId': propertyId,
-      'addedAt': FieldValue.serverTimestamp(), // Gunakan server timestamp
+      'addedAt': FieldValue.serverTimestamp(),
     };
   }
 
-  // Convert from Firestore
+  // 🔧 PERBAIKAN ADA DI SINI SAJA
   factory WishlistModel.fromFirestore(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    
-    // Handle null timestamp
-    DateTime addedAtDate;
-    if (data['addedAt'] != null) {
-      addedAtDate = (data['addedAt'] as Timestamp).toDate();
-    } else {
-      addedAtDate = DateTime.now();
-    }
-    
+    final data = doc.data() as Map<String, dynamic>;
+
+    final Timestamp? timestamp = data['addedAt'] as Timestamp?;
+
     return WishlistModel(
-      wishlistId: doc.id,
+      wishlistId: data['wishlistId'] ?? doc.id,
       userId: data['userId'] ?? '',
       propertyId: data['propertyId'] ?? '',
-      addedAt: addedAtDate,
+      addedAt: timestamp != null
+          ? timestamp.toDate()
+          : DateTime.now(),
     );
   }
 
-  // Copy with
+  // TIDAK DIUBAH
   WishlistModel copyWith({
     String? wishlistId,
     String? userId,

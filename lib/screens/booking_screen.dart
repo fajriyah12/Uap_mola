@@ -6,6 +6,7 @@ import 'package:luxora_app/models/booking_model.dart';
 import 'package:luxora_app/services/auth_service.dart';
 import 'package:luxora_app/services/booking_service.dart';
 import 'package:luxora_app/config/app_theme.dart';
+import 'package:luxora_app/utils/constants.dart';
 
 class BookingScreen extends StatefulWidget {
   final PropertyModel property;
@@ -17,6 +18,24 @@ class BookingScreen extends StatefulWidget {
 }
 
 class _BookingScreenState extends State<BookingScreen> {
+  String _getPaymentLabel(String method) {
+  switch (method) {
+    case AppConstants.paymentMethodBRI:
+      return 'Transfer Bank BRI';
+    case AppConstants.paymentMethodBCA:
+      return 'Transfer Bank BCA';
+    case AppConstants.paymentMethodMandiri:
+      return 'Transfer Bank Mandiri';
+    case AppConstants.paymentMethodGopay:
+      return 'GoPay';
+    case AppConstants.paymentMethodOvo:
+      return 'OVO';
+    case AppConstants.paymentMethodDana:
+      return 'DANA';
+    default:
+      return method;
+  }
+}
   final _formKey = GlobalKey<FormState>();
   final BookingService _bookingService = BookingService();
   
@@ -28,7 +47,7 @@ class _BookingScreenState extends State<BookingScreen> {
   DateTime? _checkInDate;
   DateTime? _checkOutDate;
   int _numberOfGuests = 1;
-  String _paymentMethod = 'BRI';
+  String _paymentMethod = AppConstants.paymentMethodBRI;
   bool _isLoading = false;
 
   @override
@@ -189,7 +208,7 @@ class _BookingScreenState extends State<BookingScreen> {
           context: context,
           barrierDismissible: false,
           builder: (context) => AlertDialog(
-            title: const Text('Pemesanan Berhasil! 🎉'),
+            title: const Text('Pemesanan Berhasil '),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -475,12 +494,26 @@ class _BookingScreenState extends State<BookingScreen> {
             ),
             const SizedBox(height: 12),
 
-            RadioListTile<String>(
-              title: const Text('Transfer Bank BRI'),
-              value: 'BRI',
-              groupValue: _paymentMethod,
-              onChanged: (value) => setState(() => _paymentMethod = value!),
-            ),
+            DropdownButtonFormField<String>(
+  value: _paymentMethod,
+  decoration: const InputDecoration(
+    prefixIcon: Icon(Icons.payment),
+    border: OutlineInputBorder(),
+    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+  ),
+  items: AppConstants.paymentMethods.map((method) {
+    return DropdownMenuItem<String>(
+      value: method,
+      child: Text(_getPaymentLabel(method)),
+    );
+  }).toList(),
+  onChanged: (value) {
+    if (value != null) {
+      setState(() => _paymentMethod = value);
+    }
+  },
+),
+
 
             const SizedBox(height: 24),
 

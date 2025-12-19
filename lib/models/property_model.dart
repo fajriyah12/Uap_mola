@@ -73,7 +73,7 @@ class PropertyModel {
     final data = doc.data() as Map<String, dynamic>?;
 
     return PropertyModel(
-      propertyId: doc.id,
+      propertyId: data?['propertyId'] ?? doc.id,
       ownerId: data?['ownerId'] ?? '',
       name: data?['name'] ?? '',
       type: data?['type'] ?? '',
