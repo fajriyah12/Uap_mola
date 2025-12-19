@@ -16,6 +16,8 @@ import 'package:luxora_app/screens/profile_screen.dart';
 import 'package:luxora_app/screens/property_detail_screen.dart';
 import 'package:luxora_app/screens/search_screen.dart';
 import 'package:luxora_app/screens/wishlist_screen.dart';
+import 'package:luxora_app/auth/auth_wrapper.dart';
+import 'package:luxora_app/screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,36 +40,8 @@ class LuxoraApp extends StatelessWidget {
         title: 'Luxora',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        home: const AuthWrapper(),
+        home: const SplashScreen(), // ⬅️ START DARI SPLASH
       ),
-    );
-  }
-}
-
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final authService = Provider.of<AuthService>(context);
-
-    return StreamBuilder(
-      stream: authService.authStateChanges,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-
-        if (snapshot.hasData) {
-          return const HomeScreen();
-        }
-
-        return const LoginScreen();
-      },
     );
   }
 }
