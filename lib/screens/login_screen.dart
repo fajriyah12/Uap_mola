@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:luxora_app/services/auth_service.dart';
-import 'package:luxora_app/config/app_theme.dart';
 import 'package:luxora_app/screens/signup_screen.dart';
 import 'package:luxora_app/screens/home_screen.dart';
+import 'package:luxora_app/screens/login_admin_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,6 +19,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isLoading = false;
   bool _obscurePassword = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
@@ -52,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // ===== HEADER IMAGE =====
+          // HEADER IMAGE
           SizedBox(
             height: MediaQuery.of(context).size.height * 0.55,
             width: double.infinity,
@@ -62,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
 
-          // ===== OVERLAY =====
+          // OVERLAY
           Container(
             height: MediaQuery.of(context).size.height * 0.55,
             decoration: BoxDecoration(
@@ -77,11 +84,11 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
 
-          // ===== FORM CARD =====
+          // FORM CARD
           DraggableScrollableSheet(
-            initialChildSize: 0.55,
-            minChildSize: 0.55,
-            maxChildSize: 0.75,
+            initialChildSize: 0.6,
+            minChildSize: 0.6,
+            maxChildSize: 0.8,
             builder: (context, scrollController) {
               return Container(
                 padding: const EdgeInsets.all(24),
@@ -174,6 +181,24 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
 
+                        const SizedBox(height: 16),
+
+                        // LOGIN ADMIN
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const AdminLoginScreen(),
+                                ),
+                              );
+                            },
+                            child: const Text('Login as Admin'),
+                          ),
+                        ),
+
                         const SizedBox(height: 24),
 
                         Row(
@@ -185,7 +210,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (_) => const SignUpScreen()),
+                                    builder: (_) => const SignUpScreen(),
+                                  ),
                                 );
                               },
                               child: const Text('Sign up'),

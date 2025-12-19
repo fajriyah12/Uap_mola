@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+
 import '../models/user_model.dart';
 import '../config/firebase_config.dart';
 
@@ -8,14 +9,18 @@ class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Current User
+  // ==================
+  // CURRENT USER
+  // ==================
   User? get currentUser => _auth.currentUser;
 
-  // Auth State Listener
+  // ==================
+  // AUTH STATE
+  // ==================
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   // ==========================
-  // SIGN UP (EMAIL & PASSWORD)
+  // SIGN UP (USER ONLY)
   // ==========================
   Future<String?> signUpWithEmail({
     required String email,
@@ -30,8 +35,10 @@ class AuthService extends ChangeNotifier {
         password: password,
       );
 
+      final uid = userCredential.user!.uid;
+
       UserModel userModel = UserModel(
-        userId: userCredential.user!.uid,
+        userId: uid,
         email: email,
         fullName: fullName,
         phoneNumber: phoneNumber,
@@ -41,8 +48,11 @@ class AuthService extends ChangeNotifier {
 
       await _firestore
           .collection(FirebaseConfig.usersCollection)
-          .doc(userCredential.user!.uid)
-          .set(userModel.toMap());
+          .doc(uid)
+          .set({
+        ...userModel.toMap(),
+        'role': 'user', // 🔑 DEFAULT ROLE
+      });
 
       await userCredential.user!.updateDisplayName(fullName);
 
@@ -56,7 +66,7 @@ class AuthService extends ChangeNotifier {
   }
 
   // ==========================
-  // SIGN IN (EMAIL & PASSWORD)
+  // SIGN IN (ADMIN & USER)
   // ==========================
   Future<String?> signInWithEmail({
     required String email,
@@ -85,25 +95,24 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // ==========
-  // LOGOUT
-  // ==========
-  Future<void> signOut() async {
-    await _auth.signOut();
-    notifyListeners();
-  }
-
   // ==================
-  // RESET PASSWORD
+  // GET USER ROLE 🔥
   // ==================
-  Future<String?> resetPassword(String email) async {
+  Future<String?> getUserRole() async {
     try {
-      await _auth.sendPasswordResetEmail(email: email);
-      return null;
-    } on FirebaseAuthException catch (e) {
-      return _handleAuthError(e);
+      final uid = _auth.currentUser?.uid;
+      if (uid == null) return null;
+
+      final doc = await _firestore
+          .collection(FirebaseConfig.usersCollection)
+          .doc(uid)
+          .get();
+
+      if (!doc.exists) return null;
+
+      return doc['role']; // admin / user
     } catch (e) {
-      return 'Terjadi kesalahan: ${e.toString()}';
+      return null;
     }
   }
 
@@ -155,6 +164,28 @@ class AuthService extends ChangeNotifier {
       return null;
     } catch (e) {
       return 'Gagal update profile: ${e.toString()}';
+    }
+  }
+
+  // ==========
+  // LOGOUT
+  // ==========
+  Future<void> signOut() async {
+    await _auth.signOut();
+    notifyListeners();
+  }
+
+  // ==================
+  // RESET PASSWORD
+  // ==================
+  Future<String?> resetPassword(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      return null;
+    } on FirebaseAuthException catch (e) {
+      return _handleAuthError(e);
+    } catch (e) {
+      return 'Terjadi kesalahan: ${e.toString()}';
     }
   }
 

@@ -1,23 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+
 import 'config/firebase_config.dart';
 import 'config/app_theme.dart';
+
+// SERVICES
 import 'services/auth_service.dart';
-import 'package:luxora_app/services/booking_service.dart';
-import 'package:luxora_app/services/review_service.dart';
-import 'package:luxora_app/services/wishlist_service.dart';
-import 'package:luxora_app/services/property_service.dart';
-import 'package:luxora_app/screens/login_screen.dart';
-import 'package:luxora_app/screens/signup_screen.dart';
-import 'package:luxora_app/screens/home_screen.dart';
-import 'package:luxora_app/screens/booking_screen.dart';
-import 'package:luxora_app/screens/profile_screen.dart';
-import 'package:luxora_app/screens/property_detail_screen.dart';
-import 'package:luxora_app/screens/search_screen.dart';
-import 'package:luxora_app/screens/wishlist_screen.dart';
-import 'package:luxora_app/auth/auth_wrapper.dart';
-import 'package:luxora_app/screens/splash_screen.dart';
+import 'services/booking_service.dart';
+import 'services/review_service.dart';
+import 'services/wishlist_service.dart';
+import 'services/property_service.dart';
+
+// SCREENS
+import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,12 +31,16 @@ class LuxoraApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService()),
+        Provider(create: (_) => PropertyService()),
+        Provider(create: (_) => WishlistService()),
+        Provider(create: (_) => BookingService()),
+        Provider(create: (_) => ReviewService()),
       ],
       child: MaterialApp(
         title: 'Luxora',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        home: const SplashScreen(), // ⬅️ START DARI SPLASH
+        home: const SplashScreen(),
       ),
     );
   }
