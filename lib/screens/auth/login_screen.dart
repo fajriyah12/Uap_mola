@@ -1,12 +1,21 @@
+// lib/screens/auth/login_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/auth_service.dart';
 import 'signup_screen.dart';
 import '../user/main_navigation.dart';
 import 'login_admin_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final String? pendingEmailChangeUserId;
+  final String? newEmail;
+
+  const LoginScreen({
+    super.key,
+    this.pendingEmailChangeUserId,
+    this.newEmail,
+  });
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -19,6 +28,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _showEmailChangeHint = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.newEmail != null) {
+      _emailController.text = widget.newEmail!;
+      _showEmailChangeHint = true;
+    }
+  }
 
   @override
   void dispose() {
@@ -50,13 +69,11 @@ class _LoginScreenState extends State<LoginScreen> {
         if (!mounted) return;
 
         if (role == 'admin') {
-          // Admin → Dashboard Admin
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
           );
         } else {
-          // User → Main Navigation
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const MainNavigation()),
@@ -138,6 +155,54 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 24),
+
+                        // ✅ EMAIL CHANGE HINT (NEW)
+                        if (_showEmailChangeHint) ...[
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.green.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.green,
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        '✅ Email Berhasil Diubah',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Login dengan email baru dan password lama Anda',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
 
                         const Column(
                           children: [
@@ -281,7 +346,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         const SizedBox(height: 16),
 
-                        // LOGIN ADMIN
                         SizedBox(
                           width: double.infinity,
                           height: 56,

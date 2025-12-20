@@ -1,3 +1,4 @@
+// lib/services/auth_service.dart
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
@@ -9,19 +10,12 @@ class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // ==================
-  // CURRENT USER
-  // ==================
   User? get currentUser => _auth.currentUser;
-
-  // ==================
-  // AUTH STATE
-  // ==================
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  // ==========================
+  // ==================
   // SIGN UP (USER ONLY)
-  // ==========================
+  // ==================
   Future<String?> signUpWithEmail({
     required String email,
     required String password,
@@ -51,7 +45,7 @@ class AuthService extends ChangeNotifier {
           .doc(uid)
           .set({
         ...userModel.toMap(),
-        'role': 'user', // 🔑 DEFAULT ROLE
+        'role': 'user',
       });
 
       await userCredential.user!.updateDisplayName(fullName);
@@ -65,8 +59,10 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+
+
   // ==========================
-  // SIGN IN (ADMIN & USER)
+  // ✅ SIGN IN WITH EMAIL CHANGE CHECK
   // ==========================
   Future<String?> signInWithEmail({
     required String email,
@@ -79,24 +75,69 @@ class AuthService extends ChangeNotifier {
         password: password,
       );
 
-      await _firestore
-          .collection(FirebaseConfig.usersCollection)
-          .doc(userCredential.user!.uid)
-          .update({
-        'lastLogin': Timestamp.fromDate(DateTime.now()),
-      });
+      final uid = userCredential.user!.uid;
+
+      // ✅ CEK: Apakah ada pending email change?
+      final tempEmailDoc = await _firestore
+          .collection('email_change_temp')
+          .doc(uid)
+          .get();
+
+      if (tempEmailDoc.exists) {
+        final tempData = tempEmailDoc.data()!;
+        final newEmail = tempData['newEmail'];
+        
+        print('🔄 Detected pending email change to: $newEmail');
+        print('📧 Current auth email: ${userCredential.user!.email}');
+
+        // Jika user login dengan email BARU yang sudah diapprove
+        if (email.toLowerCase() == newEmail.toLowerCase()) {
+          // Email di Firebase Auth sudah terupdate saat login dengan email baru
+
+          // ✅ Update email di Firestore users
+          await _firestore
+              .collection(FirebaseConfig.usersCollection)
+              .doc(uid)
+              .update({
+            'email': newEmail,
+            'lastLogin': Timestamp.fromDate(DateTime.now()),
+          });
+
+          // ✅ Hapus temporary data
+          await _firestore
+              .collection('email_change_temp')
+              .doc(uid)
+              .delete();
+
+          print('✅ Email change completed successfully');
+        }
+      } else {
+        // Normal login - update lastLogin
+        await _firestore
+            .collection(FirebaseConfig.usersCollection)
+            .doc(uid)
+            .update({
+          'lastLogin': Timestamp.fromDate(DateTime.now()),
+        });
+      }
+      // sinkron email Auth → Firestore
+      await syncEmailToFirestore();
+
 
       notifyListeners();
       return null;
+
+
     } on FirebaseAuthException catch (e) {
       return _handleAuthError(e);
     } catch (e) {
+      print('❌ Sign in error: $e');
       return 'Terjadi kesalahan: ${e.toString()}';
     }
   }
 
   // ==================
-  // GET USER ROLE 🔥
+  // GET USER ROLE
   // ==================
   Future<String?> getUserRole() async {
     try {
@@ -110,7 +151,7 @@ class AuthService extends ChangeNotifier {
 
       if (!doc.exists) return null;
 
-      return doc['role']; // admin / user
+      return doc['role'];
     } catch (e) {
       return null;
     }
@@ -167,6 +208,20 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  Future<void> syncEmailToFirestore() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
+
+  await FirebaseFirestore.instance
+      .collection('users')
+      .doc(user.uid)
+      .update({
+    'email': user.email,
+    'updatedAt': FieldValue.serverTimestamp(),
+  });
+}
+
+
   // ==========
   // LOGOUT
   // ==========
@@ -190,6 +245,25 @@ class AuthService extends ChangeNotifier {
   }
 
   // ==================
+  // ✅ CHECK PENDING EMAIL CHANGE
+  // ==================
+  Future<Map<String, dynamic>?> checkPendingEmailChange(String userId) async {
+    try {
+      final doc = await _firestore
+          .collection('email_change_temp')
+          .doc(userId)
+          .get();
+
+      if (doc.exists) {
+        return doc.data();
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // ==================
   // ERROR HANDLER
   // ==================
   String _handleAuthError(FirebaseAuthException e) {
@@ -208,6 +282,8 @@ class AuthService extends ChangeNotifier {
         return 'Akun telah dinonaktifkan';
       case 'too-many-requests':
         return 'Terlalu banyak percobaan, coba lagi nanti';
+      case 'requires-recent-login':
+        return 'Silakan login ulang untuk melanjutkan';
       default:
         return 'Terjadi kesalahan: ${e.message}';
     }

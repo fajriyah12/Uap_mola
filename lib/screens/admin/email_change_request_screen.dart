@@ -1,3 +1,4 @@
+// lib/screens/admin/email_change_request_screen.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:luxora_app/config/app_theme.dart';
@@ -33,13 +34,55 @@ class _EmailChangeRequestsScreenState extends State<EmailChangeRequestsScreen>
     super.dispose();
   }
 
+  // ✅ METHOD APPROVE YANG DIPERBAIKI
   Future<void> _approveRequest(DocumentSnapshot request) async {
+    final data = request.data() as Map<String, dynamic>;
+    
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Setujui Permintaan'),
-        content: Text(
-          'Setujui perubahan email dari:\n${request['currentEmail']}\n\nke:\n${request['newEmail']}',
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Setujui perubahan email dari:'),
+            const SizedBox(height: 8),
+            Text(
+              data['currentEmail'] ?? '-',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text('ke:'),
+            const SizedBox(height: 8),
+            Text(
+              data['newEmail'] ?? '-',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, size: 20, color: Colors.orange),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'User harus login ulang dengan email BARU untuk menyelesaikan proses',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -60,25 +103,44 @@ class _EmailChangeRequestsScreenState extends State<EmailChangeRequestsScreen>
     if (confirm != true) return;
 
     try {
-      // Update request status
+      final String userId = data['userId'];
+      final String newEmail = data['newEmail'];
+      final String currentEmail = data['currentEmail'];
+
+      // ✅ 1. Update request status
       await request.reference.update({
         'status': 'approved',
         'approvedDate': FieldValue.serverTimestamp(),
       });
 
-      // Update user email in users collection
-      await _firestore.collection('users').doc(request['userId']).update({
-        'email': request['newEmail'],
+      // ✅ 2. Simpan temporary data untuk proses re-auth
+      await _firestore.collection('email_change_temp').doc(userId).set({
+        'newEmail': newEmail,
+        'currentEmail': currentEmail,
+        'approvedAt': FieldValue.serverTimestamp(),
+        'status': 'pending_reauth',
       });
 
-      // TODO: Send email to user with verification link
-      // In production, you should send verification email to new address
+      // ✅ 3. Kirim notifikasi ke user
+      await _firestore.collection('notifications').add({
+        'userId': userId,
+        'title': 'Perubahan Email Disetujui',
+        'message': 'Silakan login ulang dengan email BARU ($newEmail) dan password lama Anda untuk menyelesaikan proses.',
+        'type': 'email_change_approved',
+        'data': {
+          'newEmail': newEmail,
+          'currentEmail': currentEmail,
+        },
+        'isRead': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Permintaan disetujui! Email berhasil diubah.'),
+            content: Text('✅ Permintaan disetujui! User akan diarahkan untuk login ulang.'),
             backgroundColor: AppTheme.successColor,
+            duration: Duration(seconds: 4),
           ),
         );
       }
@@ -194,6 +256,7 @@ class _EmailChangeRequestsScreenState extends State<EmailChangeRequestsScreen>
   }
 }
 
+// ===== REST OF THE CODE REMAINS THE SAME =====
 class _RequestList extends StatelessWidget {
   final String status;
   final Function(DocumentSnapshot)? onApprove;

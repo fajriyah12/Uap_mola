@@ -1,102 +1,19 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:luxora_app/screens/user/help_center_screen.dart';
 import 'package:provider/provider.dart';
+
 import '../../../services/auth_service.dart';
-import '../../../models/user_model.dart';
 import '../../../config/app_theme.dart';
 import '../auth/login_screen.dart';
 import 'edit_profile_screen.dart';
 import 'change_password_screen.dart';
+import '../auth/reauth_email_screen.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends StatelessWidget {
   final bool showBottomNav;
 
   const ProfileScreen({super.key, this.showBottomNav = true});
-
-  @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  UserModel? _userData;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUserData();
-  }
-
-  Future<void> _loadUserData() async {
-    final authService = Provider.of<AuthService>(context, listen: false);
-    final userId = authService.currentUser?.uid;
-
-    if (userId != null) {
-      final userData = await authService.getUserData(userId);
-      setState(() {
-        _userData = userData;
-        _isLoading = false;
-      });
-    } else {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _navigateToEditProfile() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const EditProfileScreen()),
-    );
-
-    // Reload data if profile was updated
-    if (result == true) {
-      _loadUserData();
-    }
-  }
-
-  Future<void> _navigateToChangePassword() async {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
-    );
-  }
-
-  Future<void> _logout() async {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Apakah Anda yakin ingin keluar?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final authService = Provider.of<AuthService>(
-                context,
-                listen: false,
-              );
-              await authService.signOut();
-
-              if (mounted) {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  (route) => false,
-                );
-              }
-            },
-            child: const Text(
-              'Logout',
-              style: TextStyle(color: AppTheme.errorColor),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,198 +21,244 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = authService.currentUser;
 
     if (user == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Profile')),
-        body: const Center(child: Text('Silakan login untuk melihat profile')),
+      return const Scaffold(
+        body: Center(child: Text('Silakan login')),
       );
     }
 
     return Scaffold(
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : CustomScrollView(
-              slivers: [
-                SliverAppBar(
-                  expandedHeight: 260,
-                  pinned: true,
-                  backgroundColor: Colors.transparent,
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.asset(
-                          'assets/images/back1.png',
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(color: const Color(0xFFF5F0E6)); 
-                          },
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withOpacity(0.7),
-                              ],
-                            ),
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return const Center(child: Text('Data user tidak ditemukan'));
+          }
+
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+
+          return CustomScrollView(
+            slivers: [
+              // ================= HEADER =================
+              SliverAppBar(
+                expandedHeight: 260,
+                pinned: true,
+                backgroundColor: Colors.transparent,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(
+                        'assets/images/back1.png',
+                        fit: BoxFit.cover,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.7),
+                            ],
                           ),
                         ),
-                        SafeArea(
-                          bottom: false,
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 32),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                CircleAvatar(
-                                  radius: 50,
-                                  backgroundColor: Colors.white,
-                                  child: Text(
-                                    _userData?.fullName.substring(0, 1).toUpperCase() ?? 'U',
-                                    style: const TextStyle(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                    ),
-                                  ),
+                      ),
+                      SafeArea(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircleAvatar(
+                              radius: 50,
+                              backgroundColor: Colors.white,
+                              child: Text(
+                                (data['fullName'] ?? 'U')[0].toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  _userData?.fullName ?? 'User',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
+                            const SizedBox(height: 12),
+                            Text(
+                              data['fullName'] ?? 'User',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
+              ),
 
-                // ===== INFO AKUN =====
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Informasi Akun',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+              // ================= EMAIL CHANGE BANNER =================
+              SliverToBoxAdapter(
+                child: StreamBuilder<DocumentSnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('email_change_temp')
+                      .doc(user.uid)
+                      .snapshots(),
+                  builder: (context, tempSnap) {
+                    if (!tempSnap.hasData || !tempSnap.data!.exists) {
+                      return const SizedBox.shrink();
+                    }
+
+                    final tempData =
+                        tempSnap.data!.data() as Map<String, dynamic>;
+
+                    return Container(
+                      margin: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Perubahan Email Menunggu Konfirmasi',
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        _ProfileInfoCard(
-                          icon: Icons.email,
-                          title: 'Email',
-                          value: _userData?.email ?? user.email ?? '-',
-                        ),
-                        const SizedBox(height: 12),
-                        _ProfileInfoCard(
-                          icon: Icons.phone,
-                          title: 'Nomor Telepon',
-                          value: _userData?.phoneNumber ?? '-',
-                        ),
-                        const SizedBox(height: 12),
-                        _ProfileInfoCard(
-                          icon: Icons.calendar_today,
-                          title: 'Bergabung Sejak',
-                          value: _userData?.createdAt != null
-                              ? '${_userData!.createdAt.day}/${_userData!.createdAt.month}/${_userData!.createdAt.year}'
-                              : '-',
-                        ),
-                      ],
-                    ),
+                          const SizedBox(height: 8),
+                          Text('Email baru: ${tempData['newEmail']}'),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        ReauthEmailScreen(data: tempData),
+                                  ),
+                                );
+                              },
+                              child: const Text('Konfirmasi Sekarang'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              // ================= INFO AKUN =================
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Informasi Akun',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      _ProfileInfoCard(
+                        icon: Icons.email,
+                        title: 'Email',
+                        value: data['email'] ?? user.email ?? '-',
+                      ),
+                      const SizedBox(height: 12),
+                      _ProfileInfoCard(
+                        icon: Icons.phone,
+                        title: 'Nomor Telepon',
+                        value: data['phoneNumber'] ?? '-',
+                      ),
+                    ],
                   ),
                 ),
+              ),
 
-                // ===== PENGATURAN =====
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 24),
-                        const Text(
-                          'Pengaturan',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        _SettingsItem(
-                          icon: Icons.edit,
-                          title: 'Edit Profile',
-                          onTap: _navigateToEditProfile,
-                        ),
-                        _SettingsItem(
-                          icon: Icons.lock,
-                          title: 'Ubah Password',
-                          onTap: _navigateToChangePassword,
-                        ),
-                        _SettingsItem(
-                          icon: Icons.help_outline,
-                          title: 'Bantuan & FAQ',
-                          onTap: () {
-                            Navigator.push(
+              // ================= PENGATURAN =================
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _SettingsItem(
+                        icon: Icons.edit,
+                        title: 'Edit Profile',
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const EditProfileScreen()),
+                          );
+                          if (result == true) {}
+                        },
+                      ),
+                      _SettingsItem(
+                        icon: Icons.lock,
+                        title: 'Ubah Password',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const ChangePasswordScreen()),
+                          );
+                        },
+                      ),
+                      _SettingsItem(
+                        icon: Icons.help_outline,
+                        title: 'Bantuan & FAQ',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const HelpCenterScreen()),
+                          );
+                        },
+                      ),
+                      _SettingsItem(
+                        icon: Icons.logout,
+                        title: 'Logout',
+                        textColor: AppTheme.errorColor,
+                        onTap: () async {
+                          await authService.signOut();
+                          if (context.mounted) {
+                            Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => const HelpCenterScreen(),
-                              ),
+                                  builder: (_) => const LoginScreen()),
+                              (_) => false,
                             );
-                          },
-                        ),
-                        _SettingsItem(
-                          icon: Icons.info,
-                          title: 'Tentang Luxora',
-                          onTap: () {
-                            showAboutDialog(
-                              context: context,
-                              applicationName: 'Luxora',
-                              applicationVersion: '1.0.0',
-                              applicationLegalese:
-                                  '© 2025 Luxora. All rights reserved.',
-                              children: [
-                                const SizedBox(height: 16),
-                                const Text(
-                                  'Luxora adalah platform booking hotel dan villa terpercaya di Indonesia.',
-                                  style: TextStyle(fontSize: 14),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                        _SettingsItem(
-                          icon: Icons.logout,
-                          title: 'Logout',
-                          onTap: _logout,
-                          textColor: AppTheme.errorColor,
-                        ),
-                        const SizedBox(height: 32),
-                      ],
-                    ),
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 32),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
 
-/* =================== WIDGET PENDUKUNG =================== */
+/* ================= WIDGET PENDUKUNG ================= */
 
 class _ProfileInfoCard extends StatelessWidget {
   final IconData icon;
@@ -324,7 +287,8 @@ class _ProfileInfoCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title, style: const TextStyle(fontSize: 12)),
-              Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text(value,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
             ],
           ),
         ],

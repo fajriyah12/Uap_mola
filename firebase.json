@@ -1,1 +1,31 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"luxora-app-6c7c7","appId":"1:933167062902:android:931723f973a54d1dc86457","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"luxora-app-6c7c7","configurations":{"android":"1:933167062902:android:931723f973a54d1dc86457","ios":"1:933167062902:ios:db1a35021b9d0fc4c86457","macos":"1:933167062902:ios:db1a35021b9d0fc4c86457","web":"1:933167062902:web:7f75c0425081aca6c86457","windows":"1:933167062902:web:83448fd399908ebac86457"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "luxora-app-6c7c7",
+          "appId": "1:933167062902:android:931723f973a54d1dc86457",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "luxora-app-6c7c7",
+          "configurations": {
+            "android": "1:933167062902:android:931723f973a54d1dc86457",
+            "ios": "1:933167062902:ios:db1a35021b9d0fc4c86457",
+            "macos": "1:933167062902:ios:db1a35021b9d0fc4c86457",
+            "web": "1:933167062902:web:7f75c0425081aca6c86457",
+            "windows": "1:933167062902:web:83448fd399908ebac86457"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "database": "(default)",
+    "location": "asia-southeast1",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}
