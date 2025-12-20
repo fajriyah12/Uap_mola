@@ -19,26 +19,27 @@ class BookingScreen extends StatefulWidget {
 
 class _BookingScreenState extends State<BookingScreen> {
   String _getPaymentLabel(String method) {
-  switch (method) {
-    case AppConstants.paymentMethodBRI:
-      return 'Transfer Bank BRI';
-    case AppConstants.paymentMethodBCA:
-      return 'Transfer Bank BCA';
-    case AppConstants.paymentMethodMandiri:
-      return 'Transfer Bank Mandiri';
-    case AppConstants.paymentMethodGopay:
-      return 'GoPay';
-    case AppConstants.paymentMethodOvo:
-      return 'OVO';
-    case AppConstants.paymentMethodDana:
-      return 'DANA';
-    default:
-      return method;
+    switch (method) {
+      case AppConstants.paymentMethodBRI:
+        return 'Transfer Bank BRI';
+      case AppConstants.paymentMethodBCA:
+        return 'Transfer Bank BCA';
+      case AppConstants.paymentMethodMandiri:
+        return 'Transfer Bank Mandiri';
+      case AppConstants.paymentMethodGopay:
+        return 'GoPay';
+      case AppConstants.paymentMethodOvo:
+        return 'OVO';
+      case AppConstants.paymentMethodDana:
+        return 'DANA';
+      default:
+        return method;
+    }
   }
-}
+
   final _formKey = GlobalKey<FormState>();
   final BookingService _bookingService = BookingService();
-  
+
   final _guestNameController = TextEditingController();
   final _guestPhoneController = TextEditingController();
   final _guestEmailController = TextEditingController();
@@ -62,7 +63,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
     if (user != null) {
       final userData = await authService.getUserData(user.uid);
-      if (userData != null) {
+      if (userData != null && mounted) {
         setState(() {
           _guestNameController.text = userData.fullName;
           _guestPhoneController.text = userData.phoneNumber;
@@ -89,7 +90,7 @@ class _BookingScreenState extends State<BookingScreen> {
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
 
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() {
         _checkInDate = picked;
         if (_checkOutDate != null && _checkOutDate!.isBefore(_checkInDate!)) {
@@ -101,9 +102,11 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Future<void> _selectCheckOutDate() async {
     if (_checkInDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pilih tanggal check-in terlebih dahulu')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pilih tanggal check-in terlebih dahulu')),
+        );
+      }
       return;
     }
 
@@ -114,7 +117,7 @@ class _BookingScreenState extends State<BookingScreen> {
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
 
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() => _checkOutDate = picked);
     }
   }
@@ -132,9 +135,11 @@ class _BookingScreenState extends State<BookingScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_checkInDate == null || _checkOutDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pilih tanggal check-in dan check-out')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pilih tanggal check-in dan check-out')),
+        );
+      }
       return;
     }
 
@@ -145,9 +150,11 @@ class _BookingScreenState extends State<BookingScreen> {
 
     if (userId == null) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Silakan login terlebih dahulu')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Silakan login terlebih dahulu')),
+        );
+      }
       return;
     }
 
@@ -160,16 +167,18 @@ class _BookingScreenState extends State<BookingScreen> {
 
     if (!isAvailable) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Properti tidak tersedia untuk tanggal tersebut'),
-          backgroundColor: AppTheme.errorColor,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Properti tidak tersedia untuk tanggal tersebut'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
       return;
     }
 
-    // Create booking - DIPERBAIKI dengan paymentStatus dan bookingStatus yang benar
+    // Create booking
     final booking = BookingModel(
       bookingId: '',
       userId: userId,
@@ -180,8 +189,8 @@ class _BookingScreenState extends State<BookingScreen> {
       totalNights: _totalNights,
       totalPrice: _totalPrice,
       paymentMethod: _paymentMethod,
-      paymentStatus: 'paid', // SET SEBAGAI PAID (simulasi pembayaran berhasil)
-      bookingStatus: 'confirmed', // SET SEBAGAI CONFIRMED
+      paymentStatus: 'paid',
+      bookingStatus: 'confirmed',
       guestName: _guestNameController.text.trim(),
       guestPhone: _guestPhoneController.text.trim(),
       guestEmail: _guestEmailController.text.trim(),
@@ -191,72 +200,71 @@ class _BookingScreenState extends State<BookingScreen> {
       createdAt: DateTime.now(),
     );
 
-    print('Creating booking with:');
-    print('- userId: $userId');
-    print('- propertyId: ${widget.property.propertyId}');
-    print('- paymentStatus: paid');
-    print('- bookingStatus: confirmed');
-
     final bookingId = await _bookingService.createBooking(booking);
 
     setState(() => _isLoading = false);
 
-    if (bookingId != null) {
-      if (mounted) {
-        // Show success dialog
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => AlertDialog(
-            title: const Text('Pemesanan Berhasil '),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.check_circle,
+    if (bookingId != null && mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Text('Pemesanan Berhasil! 🎉'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.check_circle,
+                color: AppTheme.successColor,
+                size: 64,
+              ),
+              const SizedBox(height: 16),
+              Text('Booking ID: ${bookingId.substring(0, 8)}...'),
+              const SizedBox(height: 8),
+              const Text(
+                '✅ Pembayaran berhasil dikonfirmasi',
+                style: TextStyle(
                   color: AppTheme.successColor,
-                  size: 64,
+                  fontWeight: FontWeight.w600,
                 ),
-                const SizedBox(height: 16),
-                Text('Booking ID: ${bookingId.substring(0, 8)}...'),
-                const SizedBox(height: 8),
-                const Text(
-                  '✅ Pembayaran berhasil dikonfirmasi',
-                  style: TextStyle(
-                    color: AppTheme.successColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Pemesanan Anda telah dikonfirmasi dan dapat dilihat di riwayat pemesanan',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 12),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Close dialog
-                  Navigator.of(context).pop(); // Back to detail
-                },
-                child: const Text('OK'),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Terima kasih telah memesan di Luxora!\n\nAnda dapat memberikan ulasan dari menu "Booking Saya" setelah menginap.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14),
               ),
             ],
           ),
-        );
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gagal membuat pemesanan. Silakan coba lagi.'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
-      }
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop(); // Back to property detail
+              },
+              child: const Text('Nanti Saja'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop(); // Back to property detail
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Silakan beri ulasan dari menu Booking Saya setelah check-out')),
+                );
+              },
+              child: const Text('Lihat di Booking Saya'),
+            ),
+          ],
+        ),
+      );
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal membuat pemesanan. Silakan coba lagi.'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
     }
   }
 
@@ -331,6 +339,7 @@ class _BookingScreenState extends State<BookingScreen> {
               child: InputDecorator(
                 decoration: const InputDecoration(
                   prefixIcon: Icon(Icons.calendar_today),
+                  border: OutlineInputBorder(),
                 ),
                 child: Text(
                   _checkInDate != null
@@ -356,6 +365,7 @@ class _BookingScreenState extends State<BookingScreen> {
               child: InputDecorator(
                 decoration: const InputDecoration(
                   prefixIcon: Icon(Icons.calendar_today),
+                  border: OutlineInputBorder(),
                 ),
                 child: Text(
                   _checkOutDate != null
@@ -397,6 +407,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       ? () => setState(() => _numberOfGuests++)
                       : null,
                 ),
+                const Spacer(),
                 Text(
                   'Maks. ${widget.property.maxGuests} tamu',
                   style: TextStyle(color: Colors.grey[600]),
@@ -423,6 +434,7 @@ class _BookingScreenState extends State<BookingScreen> {
               decoration: const InputDecoration(
                 labelText: 'Nama Lengkap',
                 prefixIcon: Icon(Icons.person),
+                border: OutlineInputBorder(),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -439,6 +451,7 @@ class _BookingScreenState extends State<BookingScreen> {
               decoration: const InputDecoration(
                 labelText: 'Nomor Telepon',
                 prefixIcon: Icon(Icons.phone),
+                border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.phone,
               validator: (value) {
@@ -456,6 +469,7 @@ class _BookingScreenState extends State<BookingScreen> {
               decoration: const InputDecoration(
                 labelText: 'Email',
                 prefixIcon: Icon(Icons.email),
+                border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
@@ -476,6 +490,7 @@ class _BookingScreenState extends State<BookingScreen> {
               decoration: const InputDecoration(
                 labelText: 'Permintaan Khusus (Opsional)',
                 prefixIcon: Icon(Icons.note),
+                border: OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
@@ -495,25 +510,23 @@ class _BookingScreenState extends State<BookingScreen> {
             const SizedBox(height: 12),
 
             DropdownButtonFormField<String>(
-  initialValue: _paymentMethod,
-  decoration: const InputDecoration(
-    prefixIcon: Icon(Icons.payment),
-    border: OutlineInputBorder(),
-    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-  ),
-  items: AppConstants.paymentMethods.map((method) {
-    return DropdownMenuItem<String>(
-      value: method,
-      child: Text(_getPaymentLabel(method)),
-    );
-  }).toList(),
-  onChanged: (value) {
-    if (value != null) {
-      setState(() => _paymentMethod = value);
-    }
-  },
-),
-
+              initialValue: _paymentMethod, // ← GANTI value jadi initialValue
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.payment),
+                border: OutlineInputBorder(),
+              ),
+              items: AppConstants.paymentMethods.map((method) {
+                return DropdownMenuItem<String>(
+                  value: method,
+                  child: Text(_getPaymentLabel(method)),
+                );
+              }).toList(),
+              onChanged: (value) {
+                if (value != null && mounted) {
+                  setState(() => _paymentMethod = value);
+                }
+              },
+            ),
 
             const SizedBox(height: 24),
 
@@ -521,7 +534,7 @@ class _BookingScreenState extends State<BookingScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withOpacity(0.1),
+                color: AppTheme.primaryColor.withValues(alpha: 0.1), // ← GANTI withOpacity jadi withValues
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -568,7 +581,7 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
             // Submit Button
             ElevatedButton(
@@ -577,15 +590,11 @@ class _BookingScreenState extends State<BookingScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
               child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Text('Konfirmasi Pemesanan'),
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text(
+                      'Konfirmasi Pemesanan',
+                      style: TextStyle(fontSize: 16),
+                    ),
             ),
 
             const SizedBox(height: 32),

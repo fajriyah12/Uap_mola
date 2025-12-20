@@ -96,7 +96,7 @@ class AuthService extends ChangeNotifier {
   }
 
   // ==================
-  // GET USER ROLE 🔥
+  // GET USER ROLE 
   // ==================
   Future<String?> getUserRole() async {
     try {

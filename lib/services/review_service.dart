@@ -1,3 +1,6 @@
+// lib/services/review_service.dart
+
+import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 import 'package:luxora_app/models/review_model.dart';
@@ -7,31 +10,112 @@ class ReviewService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final Uuid _uuid = const Uuid();
 
-  // Create Review
   Future<String?> createReview(ReviewModel review) async {
+  try {
+    final String reviewId = _uuid.v4();
+    final ReviewModel newReview = review.copyWith(
+      reviewId: reviewId,
+      createdAt: DateTime.now(),
+    );
+
+    // LOG SUPER DETAIL UNTUK DEBUG
+    print('=== DEBUG REVIEW ===');
+    print('Collection name: ${FirebaseConfig.reviewsCollection}');
+    print('Review ID: $reviewId');
+    print('Property ID: ${review.propertyId}');
+    print('User ID: ${review.userId}');
+    print('Rating: ${review.rating}');
+    print('Comment: ${review.comment}');
+    print('Map data: ${newReview.toMap()}');
+    print('===================');
+
+    await _firestore
+        .collection(FirebaseConfig.reviewsCollection)
+        .doc(reviewId)
+        .set(newReview.toMap());
+
+    print('Review berhasil disimpan ke Firestore!');
+
+    await _updatePropertyRating(review.propertyId);
+    return null;
+  } catch (e, stackTrace) {
+    print('ERROR SAAT SIMPAN REVIEW: $e');
+    print('Stack trace: $stackTrace');
+    return 'Gagal menambahkan review: ${e.toString()}';
+  }
+}
+
+  Future<bool> canUserReview({
+    required String userId,
+    required String propertyId,
+  }) async {
     try {
-      String reviewId = _uuid.v4();
-      ReviewModel newReview = review.copyWith(
-        reviewId: reviewId,
-        createdAt: DateTime.now(),
-      );
+      final bookingSnapshot = await _firestore
+          .collection(FirebaseConfig.bookingsCollection)
+          .where('userId', isEqualTo: userId)
+          .where('propertyId', isEqualTo: propertyId)
+          .where('bookingStatus', isEqualTo: 'completed')
+          .limit(1)
+          .get();
 
-      // Add review
-      await _firestore
+      if (bookingSnapshot.docs.isEmpty) return false;
+
+      final reviewSnapshot = await _firestore
           .collection(FirebaseConfig.reviewsCollection)
-          .doc(reviewId)
-          .set(newReview.toMap());
+          .where('userId', isEqualTo: userId)
+          .where('propertyId', isEqualTo: propertyId)
+          .limit(1)
+          .get();
 
-      // Update property rating
-      await _updatePropertyRating(review.propertyId);
-
-      return null; // Success
+      return reviewSnapshot.docs.isEmpty;
     } catch (e) {
-      return 'Gagal menambahkan review: ${e.toString()}';
+      developer.log('Error canUserReview: $e');
+      return false;
     }
   }
 
-  // Get Property Reviews
+  Future<String?> updateReview(ReviewModel review) async {
+    try {
+      await _firestore
+          .collection(FirebaseConfig.reviewsCollection)
+          .doc(review.reviewId)
+          .update({
+        'rating': review.rating,
+        'comment': review.comment,
+        'createdAt': DateTime.now(),
+      });
+
+      await _updatePropertyRating(review.propertyId);
+      return null;
+    } catch (e) {
+      developer.log('Error updateReview: $e');
+      return 'Gagal update review: ${e.toString()}';
+    }
+  }
+
+  Future<String?> deleteReview(String reviewId) async {
+    try {
+      final docSnapshot = await _firestore
+          .collection(FirebaseConfig.reviewsCollection)
+          .doc(reviewId)
+          .get();
+
+      if (!docSnapshot.exists) return 'Review tidak ditemukan';
+
+      final review = ReviewModel.fromFirestore(docSnapshot);
+      await _firestore
+          .collection(FirebaseConfig.reviewsCollection)
+          .doc(reviewId)
+          .delete();
+
+      await _updatePropertyRating(review.propertyId);
+      return null;
+    } catch (e) {
+      developer.log('Error deleteReview: $e');
+      return 'Gagal menghapus review: ${e.toString()}';
+    }
+  }
+
   Stream<List<ReviewModel>> getPropertyReviews(String propertyId) {
     return _firestore
         .collection(FirebaseConfig.reviewsCollection)
@@ -43,173 +127,33 @@ class ReviewService {
             .toList());
   }
 
-  // Get User Reviews
-  Stream<List<ReviewModel>> getUserReviews(String userId) {
-    return _firestore
-        .collection(FirebaseConfig.reviewsCollection)
-        .where('userId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ReviewModel.fromFirestore(doc))
-            .toList());
-  }
-
-  // Check if User Already Reviewed
-  Future<bool> hasUserReviewed({
-    required String userId,
-    required String propertyId,
-  }) async {
-    try {
-      QuerySnapshot snapshot = await _firestore
-          .collection(FirebaseConfig.reviewsCollection)
-          .where('userId', isEqualTo: userId)
-          .where('propertyId', isEqualTo: propertyId)
-          .get();
-
-      return snapshot.docs.isNotEmpty;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  // Update Review
-  Future<String?> updateReview({
-    required String reviewId,
-    required double rating,
-    required String comment,
-  }) async {
-    try {
-      await _firestore
-          .collection(FirebaseConfig.reviewsCollection)
-          .doc(reviewId)
-          .update({
-        'rating': rating,
-        'comment': comment,
-      });
-
-      // Get property ID and update rating
-      DocumentSnapshot doc = await _firestore
-          .collection(FirebaseConfig.reviewsCollection)
-          .doc(reviewId)
-          .get();
-      
-      if (doc.exists) {
-        ReviewModel review = ReviewModel.fromFirestore(doc);
-        await _updatePropertyRating(review.propertyId);
-      }
-
-      return null; // Success
-    } catch (e) {
-      return 'Gagal update review: ${e.toString()}';
-    }
-  }
-
-  // Delete Review
-  Future<String?> deleteReview(String reviewId) async {
-    try {
-      // Get property ID before delete
-      DocumentSnapshot doc = await _firestore
-          .collection(FirebaseConfig.reviewsCollection)
-          .doc(reviewId)
-          .get();
-
-      if (doc.exists) {
-        ReviewModel review = ReviewModel.fromFirestore(doc);
-        
-        // Delete review
-        await _firestore
-            .collection(FirebaseConfig.reviewsCollection)
-            .doc(reviewId)
-            .delete();
-
-        // Update property rating
-        await _updatePropertyRating(review.propertyId);
-      }
-
-      return null; // Success
-    } catch (e) {
-      return 'Gagal menghapus review: ${e.toString()}';
-    }
-  }
-
-  // Update Property Rating (private helper)
   Future<void> _updatePropertyRating(String propertyId) async {
+    final propertyRef = _firestore
+        .collection(FirebaseConfig.propertiesCollection)
+        .doc(propertyId);
+
     try {
-      // Get all reviews for this property
-      QuerySnapshot snapshot = await _firestore
+      final reviewsSnapshot = await _firestore
           .collection(FirebaseConfig.reviewsCollection)
           .where('propertyId', isEqualTo: propertyId)
           .get();
 
-      if (snapshot.docs.isEmpty) {
-        // No reviews, set rating to 0
-        await _firestore
-            .collection(FirebaseConfig.propertiesCollection)
-            .doc(propertyId)
-            .update({
-          'rating': 0.0,
-          'totalReviews': 0,
-        });
+      if (reviewsSnapshot.docs.isEmpty) {
+        await propertyRef.update({'rating': 0.0, 'totalReviews': 0});
         return;
       }
 
-      // Calculate average rating
-      double totalRating = 0;
-      for (var doc in snapshot.docs) {
-        ReviewModel review = ReviewModel.fromFirestore(doc);
-        totalRating += review.rating;
+      double total = 0.0;
+      for (var doc in reviewsSnapshot.docs) {
+        total += (doc['rating'] as num).toDouble();
       }
 
-      double averageRating = totalRating / snapshot.docs.length;
-      int totalReviews = snapshot.docs.length;
-
-      // Update property
-      await _firestore
-          .collection(FirebaseConfig.propertiesCollection)
-          .doc(propertyId)
-          .update({
-        'rating': averageRating,
-        'totalReviews': totalReviews,
+      await propertyRef.update({
+        'rating': total / reviewsSnapshot.docs.length,
+        'totalReviews': reviewsSnapshot.docs.length,
       });
     } catch (e) {
-      // Silently fail
-    }
-  }
-
-  // Get Average Rating for Property
-  Future<double> getAverageRating(String propertyId) async {
-    try {
-      QuerySnapshot snapshot = await _firestore
-          .collection(FirebaseConfig.reviewsCollection)
-          .where('propertyId', isEqualTo: propertyId)
-          .get();
-
-      if (snapshot.docs.isEmpty) return 0.0;
-
-      double totalRating = 0;
-      for (var doc in snapshot.docs) {
-        ReviewModel review = ReviewModel.fromFirestore(doc);
-        totalRating += review.rating;
-      }
-
-      return totalRating / snapshot.docs.length;
-    } catch (e) {
-      return 0.0;
-    }
-  }
-
-  // Get Review Count for Property
-  Future<int> getReviewCount(String propertyId) async {
-    try {
-      QuerySnapshot snapshot = await _firestore
-          .collection(FirebaseConfig.reviewsCollection)
-          .where('propertyId', isEqualTo: propertyId)
-          .get();
-
-      return snapshot.docs.length;
-    } catch (e) {
-      return 0;
+      developer.log('Failed to update rating: $e');
     }
   }
 }
