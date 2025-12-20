@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "933167062902",
+    "project_id": "luxora-app-6c7c7",
+    "storage_bucket": "luxora-app-6c7c7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:933167062902:android:931723f973a54d1dc86457",
+        "android_client_info": {
+          "package_name": "com.example.luxora_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNAR4RZYUCSEm--Fl7jZ7SOa7z6FvpIQw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
