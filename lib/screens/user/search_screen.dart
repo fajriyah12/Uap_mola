@@ -123,7 +123,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: _selectedCity,
+                  initialValue: _selectedCity,
                   decoration: const InputDecoration(
                     hintText: 'Pilih Kota',
                     contentPadding: EdgeInsets.symmetric(
@@ -152,7 +152,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: _selectedType,
+                  initialValue: _selectedType,
                   decoration: const InputDecoration(
                     hintText: 'Pilih Tipe',
                     contentPadding: EdgeInsets.symmetric(

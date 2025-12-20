@@ -295,111 +295,107 @@ class BookingCard extends StatelessWidget {
                 const SizedBox(height: 18),
                 const Divider(),
 
-                // STATUS
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Booking ID',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: _statusColor().withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Text(
-                        _statusText(),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                          color: _statusColor(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
 
-                const SizedBox(height: 6),
-                Text(
-                  booking.bookingId.substring(0, 12) + '...',
-                  style: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+              // STATUS
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Booking ID',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
                   ),
-                ),
-
-                const SizedBox(height: 14),
-
-                // PAYMENT
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: _paymentColor().withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    'Pembayaran: ${_paymentText()}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                      color: _paymentColor(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: _statusColor().withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(30),
                     ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // DATE
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _dateItem('Check-in', booking.checkInDate),
-                    const Icon(Icons.arrow_forward_ios,
-                        size: 14, color: Colors.grey),
-                    _dateItem('Check-out', booking.checkOutDate),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // INFO
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _infoItem(Icons.nights_stay,
-                        '${booking.totalNights} malam'),
-                    _infoItem(
-                        Icons.people, '${booking.numberOfGuests} tamu'),
-                    _infoItem(Icons.payment, booking.paymentMethod),
-                  ],
-                ),
-
-                const Divider(height: 28),
-
-                // TOTAL
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Total Pembayaran',
-                      style:
-                          TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                    ),
-                    Text(
-                      'Rp ${booking.totalPrice.toStringAsFixed(0)}',
-                      style: const TextStyle(
-                        fontSize: 20,
+                    child: Text(
+                      _statusText(),
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
+                        fontSize: 12,
+                        color: _statusColor(),
                       ),
                     ),
-                  ],
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 6),
+              Text(
+                '${booking.bookingId.substring(0, 12)}...',
+                style: const TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
                 ),
+              ),
+
+              const SizedBox(height: 14),
+
+              // PAYMENT
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: _paymentColor().withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Pembayaran: ${_paymentText()}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: _paymentColor(),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // DATE
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _dateItem('Check-in', booking.checkInDate),
+                  const Icon(Icons.arrow_forward_ios,
+                      size: 14, color: Colors.grey),
+                  _dateItem('Check-out', booking.checkOutDate),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // INFO
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _infoItem(Icons.nights_stay, '${booking.totalNights} malam'),
+                  _infoItem(Icons.people, '${booking.numberOfGuests} tamu'),
+                  _infoItem(Icons.payment, booking.paymentMethod),
+                ],
+              ),
+
+              const Divider(height: 28),
+
+              // TOTAL
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Total Pembayaran',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  ),
+                  Text(
+                    'Rp ${booking.totalPrice.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                ],
+              ),
               ],
             ),
           ),

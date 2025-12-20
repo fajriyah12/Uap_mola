@@ -5,11 +5,7 @@ class EditHotelScreen extends StatefulWidget {
   final String hotelId;
   final Map<String, dynamic> hotelData;
 
-  const EditHotelScreen({
-    Key? key,
-    required this.hotelId,
-    required this.hotelData,
-  }) : super(key: key);
+  const EditHotelScreen({super.key, required this.hotelId, required this.hotelData});
 
   @override
   State<EditHotelScreen> createState() => _EditHotelScreenState();
@@ -323,13 +319,8 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: DropdownButtonFormField(
-        value: selectedType,
-        decoration: InputDecoration(
-          labelText: "Tipe Properti",
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
+        initialValue: selectedType,
+        decoration: const InputDecoration(labelText: "Tipe Properti"),
         items: propertyTypes
             .map((e) => DropdownMenuItem(value: e, child: Text(e)))
             .toList(),

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../services/auth_service.dart';
-import '../../../services/property_service.dart';
-import '../../../models/property_model.dart';
-import '../../../config/app_theme.dart';
-import 'package:luxora_app/screens/user/search_screen.dart';
+import '../../services/auth_service.dart';
+import '../../services/property_service.dart';
+import '../../models/property_model.dart';
+import '../../config/app_theme.dart';
 import 'property_detail_screen.dart';
 import 'wishlist_screen.dart';
+import 'main_navigation.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool showBottomNav;
@@ -42,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
               floating: true,
               backgroundColor: Colors.white,
               elevation: 0,
-              automaticallyImplyLeading: false, 
+              automaticallyImplyLeading: false,
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -82,17 +82,18 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
 
             // ===============================
-            // SEARCH BAR
+            // SEARCH BAR - FIXED NAVIGATION
             // ===============================
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: GestureDetector(
                   onTap: () {
-                    Navigator.push(
+                    // ✅ NAVIGATE KE TAB SEARCH (INDEX 1)
+                    Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const SearchScreen(),
+                        builder: (_) => const MainNavigation(initialIndex: 1),
                       ),
                     );
                   },

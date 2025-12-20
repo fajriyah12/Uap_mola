@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:luxora_app/screens/admin/admin_cs_dashboard.dart';
 
 import '../auth/login_admin_screen.dart';
 import 'add_hotel_screen.dart';
@@ -7,7 +8,7 @@ import 'admin_property_list_screen.dart';
 import 'admin_booking_screen.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
-  const AdminDashboardScreen({Key? key}) : super(key: key);
+  const AdminDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -95,12 +96,10 @@ class AdminDashboardScreen extends StatelessWidget {
                       );
                     },
                   ),
-
                   _DashboardCard(
                     title: "Data Hotel",
                     imageUrl:
-                        "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=80",
-
+                        "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=800",
                     onTap: () {
                       Navigator.push(
                         context,
@@ -110,22 +109,32 @@ class AdminDashboardScreen extends StatelessWidget {
                       );
                     },
                   ),
-
                   _DashboardCard(
                     title: "Booking User",
                     imageUrl:
                         "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800",
                     onTap: () {
-                      if (currentUser != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => AdminBookingScreen(
-                              adminId: currentUser.uid,
-                            ),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AdminBookingScreen(
+                            adminId: currentUser!.uid,
                           ),
-                        );
-                      }
+                        ),
+                      );
+                    },
+                  ),
+                  _DashboardCard(
+                    title: "CS Dashboard",
+                    imageUrl:
+                        "https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=800",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AdminCSDashboardScreen(),
+                        ),
+                      );
                     },
                   ),
                 ],
@@ -138,7 +147,7 @@ class AdminDashboardScreen extends StatelessWidget {
   }
 }
 
-// ================= DASHBOARD CARD (IMAGE VERSION) =================
+// ================= DASHBOARD CARD =================
 class _DashboardCard extends StatelessWidget {
   final String title;
   final String imageUrl;
@@ -168,7 +177,6 @@ class _DashboardCard extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // ===== IMAGE =====
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
               child: Image.network(
@@ -182,8 +190,6 @@ class _DashboardCard extends StatelessWidget {
                 ),
               ),
             ),
-
-            // ===== DARK OVERLAY =====
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
@@ -197,8 +203,6 @@ class _DashboardCard extends StatelessWidget {
                 ),
               ),
             ),
-
-            // ===== TITLE =====
             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(

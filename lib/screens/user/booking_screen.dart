@@ -495,7 +495,7 @@ class _BookingScreenState extends State<BookingScreen> {
             const SizedBox(height: 12),
 
             DropdownButtonFormField<String>(
-  value: _paymentMethod,
+  initialValue: _paymentMethod,
   decoration: const InputDecoration(
     prefixIcon: Icon(Icons.payment),
     border: OutlineInputBorder(),

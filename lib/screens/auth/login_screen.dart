@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:luxora_app/services/auth_service.dart';
-import 'package:luxora_app/screens/auth/signup_screen.dart';
-import 'package:luxora_app/screens/user/home_screen.dart';
-import 'package:luxora_app/screens/auth/login_admin_screen.dart';
+import '../../services/auth_service.dart';
+import 'signup_screen.dart';
+import '../user/main_navigation.dart';
+import 'login_admin_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -32,24 +32,46 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
 
-    final authService = context.read<AuthService>();
-    final error = await authService.signInWithEmail(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
-
-    setState(() => _isLoading = false);
-
-    if (!mounted) return;
-
-    if (error == null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final error = await authService.signInWithEmail(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
       );
-    } else {
+
+      if (!mounted) return;
+
+      setState(() => _isLoading = false);
+
+      if (error == null) {
+        // ✅ LOGIN BERHASIL - CEK ROLE
+        final role = await authService.getUserRole();
+        
+        if (!mounted) return;
+
+        if (role == 'admin') {
+          // Admin → Dashboard Admin
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
+          );
+        } else {
+          // User → Main Navigation
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const MainNavigation()),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error)),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error)),
+        SnackBar(content: Text('Error: ${e.toString()}')),
       );
     }
   }
@@ -93,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
               return Container(
                 padding: const EdgeInsets.all(24),
                 decoration: const BoxDecoration(
-                  color: Color(0xFFF6EFE6), 
+                  color: Color(0xFFF6EFE6),
                   borderRadius: BorderRadius.vertical(
                     top: Radius.circular(28),
                   ),
@@ -149,21 +171,26 @@ class _LoginScreenState extends State<LoginScreen> {
                             prefixIcon: const Icon(Icons.email_outlined),
                             filled: true,
                             fillColor: Colors.transparent,
-                            contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+                            contentPadding: const EdgeInsets.symmetric(
+                                vertical: 18, horizontal: 16),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 1.5),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.black, width: 2),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             errorBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.red, width: 1.5),
+                              borderSide: const BorderSide(
+                                  color: Colors.red, width: 1.5),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             focusedErrorBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.red, width: 2),
+                              borderSide: const BorderSide(
+                                  color: Colors.red, width: 2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
@@ -180,21 +207,26 @@ class _LoginScreenState extends State<LoginScreen> {
                             prefixIcon: const Icon(Icons.lock_outline),
                             filled: true,
                             fillColor: Colors.transparent,
-                            contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+                            contentPadding: const EdgeInsets.symmetric(
+                                vertical: 18, horizontal: 16),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 1.5),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.black, width: 2),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             errorBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.red, width: 1.5),
+                              borderSide: const BorderSide(
+                                  color: Colors.red, width: 1.5),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             focusedErrorBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.red, width: 2),
+                              borderSide: const BorderSide(
+                                  color: Colors.red, width: 2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             suffixIcon: IconButton(
@@ -242,7 +274,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ? const CircularProgressIndicator(
                                     color: Colors.white,
                                   )
-                                : const Text('Login', style: TextStyle(fontSize: 16)),
+                                : const Text('Login',
+                                    style: TextStyle(fontSize: 16)),
                           ),
                         ),
 
@@ -267,7 +300,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderRadius: BorderRadius.circular(28),
                               ),
                             ),
-                            child: const Text('Login as Admin', style: TextStyle(color: Colors.black)),
+                            child: const Text('Login as Admin',
+                                style: TextStyle(color: Colors.black)),
                           ),
                         ),
 
@@ -276,7 +310,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text('Don’t have an account? '),
+                            const Text("Don't have an account? "),
                             TextButton(
                               onPressed: () {
                                 Navigator.push(

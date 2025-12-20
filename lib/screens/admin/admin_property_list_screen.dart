@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'edit_hotel_screen.dart';
 
 class AdminHotelListScreen extends StatelessWidget {
-  const AdminHotelListScreen({Key? key}) : super(key: key);
+  const AdminHotelListScreen({super.key});
 
   Future<void> toggleActive(String id, bool current) async {
     await FirebaseFirestore.instance

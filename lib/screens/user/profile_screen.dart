@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:luxora_app/screens/user/help_center_screen.dart';
 import 'package:provider/provider.dart';
 import '../../../services/auth_service.dart';
 import '../../../models/user_model.dart';
@@ -6,8 +7,6 @@ import '../../../config/app_theme.dart';
 import '../auth/login_screen.dart';
 import 'edit_profile_screen.dart';
 import 'change_password_screen.dart';
-import 'booking_screen.dart';
-import '../../../models/property_model.dart';
 
 class ProfileScreen extends StatefulWidget {
   final bool showBottomNav;
@@ -154,7 +153,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   radius: 50,
                                   backgroundColor: Colors.white,
                                   child: Text(
-                                    _userData?.fullName?.substring(0, 1).toUpperCase() ?? 'U',
+                                    _userData?.fullName.substring(0, 1).toUpperCase() ?? 'U',
                                     style: const TextStyle(
                                       fontSize: 32,
                                       fontWeight: FontWeight.bold,
@@ -251,9 +250,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           icon: Icons.help_outline,
                           title: 'Bantuan & FAQ',
                           onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Fitur akan segera hadir'),
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const HelpCenterScreen(),
                               ),
                             );
                           },

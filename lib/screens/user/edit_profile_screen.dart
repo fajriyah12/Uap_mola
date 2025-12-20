@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:luxora_app/screens/user/change_email_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:luxora_app/services/auth_service.dart';
 import 'package:luxora_app/models/user_model.dart';
@@ -241,7 +242,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                       const SizedBox(height: 32),
 
-                      // Email (Read-only)
                       const Text(
                         'Email',
                         style: TextStyle(
@@ -251,23 +251,45 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      TextFormField(
-                        initialValue: _userData?.email,
-                        enabled: false,
-                        decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.email_outlined),
-                          suffixIcon: Tooltip(
-                            message: 'Email tidak dapat diubah',
-                            child: Icon(
-                              Icons.lock_outline,
-                              size: 20,
-                              color: Colors.grey[400],
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              initialValue: _userData?.email,
+                              enabled: false,
+                              decoration: InputDecoration(
+                                prefixIcon: const Icon(Icons.email_outlined),
+                                suffixIcon: Tooltip(
+                                  message: 'Email tidak dapat diubah',
+                                  child: Icon(
+                                    Icons.lock_outline,
+                                    size: 20,
+                                    color: Colors.grey[400],
+                                  ),
+                                ),
+                              ),
+                              style: TextStyle(color: Colors.grey[600]),
                             ),
                           ),
-                        ),
-                        style: TextStyle(color: Colors.grey[600]),
+                        ],
                       ),
-
+                      const SizedBox(height: 8),
+                      // TAMBAHKAN INI:
+                      TextButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ChangeEmailScreen(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.edit, size: 18),
+                        label: const Text('Ubah Email'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppTheme.primaryColor,
+                        ),
+                      ),
                       const SizedBox(height: 24),
 
                       // Full Name

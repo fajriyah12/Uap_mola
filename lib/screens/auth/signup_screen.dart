@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:luxora_app/services/auth_service.dart';
 import 'package:luxora_app/config/app_theme.dart';
-import 'package:luxora_app/screens/user/home_screen.dart';
+import 'package:luxora_app/screens/user/main_navigation.dart'; // ✅ GANTI INI
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -49,9 +49,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     if (error == null) {
       if (mounted) {
+        // ✅ SIGNUP BERHASIL - LANGSUNG KE MAINNAVIGATION
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          MaterialPageRoute(builder: (_) => const MainNavigation()),
         );
       }
     } else {
@@ -113,7 +114,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               return Container(
                 padding: const EdgeInsets.all(24),
                 decoration: const BoxDecoration(
-                  color: Color(0xFFF6EFE6), 
+                  color: Color(0xFFF6EFE6),
                   borderRadius: BorderRadius.vertical(
                     top: Radius.circular(30),
                   ),
@@ -157,11 +158,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             filled: true,
                             fillColor: Colors.transparent,
                             enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 1.5),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.black, width: 2),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
@@ -184,11 +187,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             filled: true,
                             fillColor: Colors.transparent,
                             enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 1.5),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.black, width: 2),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
@@ -214,11 +219,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             filled: true,
                             fillColor: Colors.transparent,
                             enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 1.5),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.black, width: 2),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
@@ -244,11 +251,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             filled: true,
                             fillColor: Colors.transparent,
                             enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 1.5),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.black, width: 2),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             suffixIcon: IconButton(
@@ -286,11 +295,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             filled: true,
                             fillColor: Colors.transparent,
                             enabledBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 1.5),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(color: Colors.black, width: 2),
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             suffixIcon: IconButton(
@@ -338,8 +349,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     width: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor:
-                                          AlwaysStoppedAnimation(Colors.white),
+                                      valueColor: AlwaysStoppedAnimation(
+                                          Colors.white),
                                     ),
                                   )
                                 : const Text('Sign Up'),

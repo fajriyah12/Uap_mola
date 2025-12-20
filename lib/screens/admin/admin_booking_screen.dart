@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 class AdminBookingScreen extends StatelessWidget {
   final String adminId;
 
-  const AdminBookingScreen({Key? key, required this.adminId}) : super(key: key);
+  const AdminBookingScreen({super.key, required this.adminId});
 
   String formatDate(Timestamp? timestamp) {
     if (timestamp == null) return "-";
