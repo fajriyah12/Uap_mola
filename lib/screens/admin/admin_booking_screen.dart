@@ -5,14 +5,19 @@ import 'package:intl/intl.dart';
 class AdminBookingScreen extends StatelessWidget {
   final String adminId;
 
-  const AdminBookingScreen({super.key, required this.adminId});
+  const AdminBookingScreen({
+    super.key,
+    required this.adminId,
+  });
 
+  // ================= FORMAT DATE =================
   String formatDate(Timestamp? timestamp) {
     if (timestamp == null) return "-";
     final date = timestamp.toDate();
     return DateFormat('dd/MM/yyyy').format(date);
   }
 
+  // ================= STATUS COLOR =================
   Color statusColor(String status) {
     switch (status.toLowerCase()) {
       case 'confirmed':
@@ -26,6 +31,7 @@ class AdminBookingScreen extends StatelessWidget {
     }
   }
 
+  // ================= FORMAT CURRENCY =================
   String formatCurrency(int price) {
     final formatter = NumberFormat('#,###', 'id_ID');
     return formatter.format(price);
@@ -39,6 +45,7 @@ class AdminBookingScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: cream,
 
+      // ================= APP BAR =================
       appBar: AppBar(
         title: const Text(
           "Booking User",
@@ -53,8 +60,11 @@ class AdminBookingScreen extends StatelessWidget {
         elevation: 4,
       ),
 
+      // ================= BODY =================
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('bookings').snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('bookings')
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -76,16 +86,28 @@ class AdminBookingScreen extends StatelessWidget {
             itemCount: bookings.length,
             itemBuilder: (context, index) {
               final booking = bookings[index];
+              final data = booking.data() as Map<String, dynamic>;
 
-              final guestName = booking['guestName'] ?? '-';
-              final guestEmail = booking['guestEmail'] ?? '-';
-              final checkInDate = booking['checkInDate'] as Timestamp?;
-              final checkOutDate = booking['checkOutDate'] as Timestamp?;
-              final bookingStatus = booking['bookingStatus'] ?? 'pending';
-              final paymentMethod = booking['paymentMethod'] ?? '-';
-              final paymentStatus = booking['paymentStatus'] ?? '-';
-              final totalPrice = booking['totalPrice'] ?? 0;
+              // ================= SAFE DATA =================
+              final String guestName =
+                  data['guestName']?.toString() ?? '-';
+              final String guestEmail =
+                  data['guestEmail']?.toString() ?? '-';
 
+              final Timestamp? checkInDate = data['checkInDate'];
+              final Timestamp? checkOutDate = data['checkOutDate'];
+
+              final String bookingStatus =
+                  data['bookingStatus']?.toString() ?? 'pending';
+              final String paymentMethod =
+                  data['paymentMethod']?.toString() ?? '-';
+              final String paymentStatus =
+                  data['paymentStatus']?.toString() ?? '-';
+
+              final int totalPrice =
+                  data['totalPrice'] is int ? data['totalPrice'] : 0;
+
+              // ================= CARD =================
               return Container(
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
@@ -134,17 +156,29 @@ class AdminBookingScreen extends StatelessWidget {
                       // ===== DATE =====
                       Row(
                         children: [
-                          const Icon(Icons.login, size: 18, color: primaryBrown),
+                          const Icon(
+                            Icons.login,
+                            size: 18,
+                            color: primaryBrown,
+                          ),
                           const SizedBox(width: 6),
-                          Text("Check-in: ${formatDate(checkInDate)}"),
+                          Text(
+                            "Check-in: ${formatDate(checkInDate)}",
+                          ),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Icon(Icons.logout, size: 18, color: primaryBrown),
+                          const Icon(
+                            Icons.logout,
+                            size: 18,
+                            color: primaryBrown,
+                          ),
                           const SizedBox(width: 6),
-                          Text("Check-out: ${formatDate(checkOutDate)}"),
+                          Text(
+                            "Check-out: ${formatDate(checkOutDate)}",
+                          ),
                         ],
                       ),
 

@@ -5,7 +5,11 @@ class EditHotelScreen extends StatefulWidget {
   final String hotelId;
   final Map<String, dynamic> hotelData;
 
-  const EditHotelScreen({super.key, required this.hotelId, required this.hotelData});
+  const EditHotelScreen({
+    super.key,
+    required this.hotelId,
+    required this.hotelData,
+  });
 
   @override
   State<EditHotelScreen> createState() => _EditHotelScreenState();
@@ -33,7 +37,6 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
   bool isLoading = false;
 
   final List<String> propertyTypes = ['hotel', 'villa', 'homestay'];
-
   final List<String> availableFacilities = [
     'WiFi',
     'AC',
@@ -44,9 +47,6 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
     'BBQ',
     'Security',
   ];
-
-  final String defaultImage =
-      'https://images.unsplash.com/photo-1602343168117-bb8ffe3e2e9f?w=800';
 
   @override
   void initState() {
@@ -76,6 +76,38 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
     images = List<String>.from(data['images'] ?? []);
   }
 
+  // ================= VALIDASI URL =================
+  bool _isValidUrl(String url) {
+    final uri = Uri.tryParse(url);
+    return uri != null && uri.isAbsolute;
+  }
+
+  void addImage() {
+    final url = imageController.text.trim();
+    if (url.isEmpty) return;
+
+    if (!_isValidUrl(url)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('URL gambar tidak valid')),
+      );
+      return;
+    }
+
+    setState(() {
+      images.add(url);
+      imageController.clear();
+    });
+  }
+
+  void toggleFacility(String facility) {
+    setState(() {
+      facilities.contains(facility)
+          ? facilities.remove(facility)
+          : facilities.add(facility);
+    });
+  }
+
+  // ================= UPDATE HOTEL =================
   Future<void> updateHotel() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -86,7 +118,12 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
       return;
     }
 
-    if (images.isEmpty) images.add(defaultImage);
+    if (images.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Tambahkan minimal 1 gambar")),
+      );
+      return;
+    }
 
     setState(() => isLoading = true);
 
@@ -124,23 +161,7 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
     setState(() => isLoading = false);
   }
 
-  void addImage() {
-    if (imageController.text.trim().isNotEmpty) {
-      setState(() {
-        images.add(imageController.text.trim());
-        imageController.clear();
-      });
-    }
-  }
-
-  void toggleFacility(String facility) {
-    setState(() {
-      facilities.contains(facility)
-          ? facilities.remove(facility)
-          : facilities.add(facility);
-    });
-  }
-
+  // ================= UI =================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -201,22 +222,59 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
+
+            // ===== PREVIEW GAMBAR =====
             Wrap(
-              spacing: 8,
-              children: images.map((e) {
-                return Chip(
-                  label: SizedBox(
-                    width: 120,
-                    child: Text(
-                      e,
-                      overflow: TextOverflow.ellipsis,
+              spacing: 12,
+              runSpacing: 12,
+              children: List.generate(images.length, (index) {
+                final imageUrl = images[index];
+
+                return Stack(
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            imageUrl,
+                            width: 120,
+                            height: 80,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              width: 120,
+                              height: 80,
+                              color: Colors.grey.shade300,
+                              child: const Icon(Icons.broken_image),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Gambar ${index + 1}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  deleteIcon: const Icon(Icons.close),
-                  onDeleted: () => setState(() => images.remove(e)),
+                    Positioned(
+                      top: -6,
+                      right: -6,
+                      child: IconButton(
+                        icon: const Icon(Icons.close, size: 18),
+                        color: Colors.red,
+                        onPressed: () {
+                          setState(() => images.removeAt(index));
+                        },
+                      ),
+                    ),
+                  ],
                 );
-              }).toList(),
+              }),
             ),
 
             const SizedBox(height: 32),
@@ -242,90 +300,44 @@ class _EditHotelScreenState extends State<EditHotelScreen> {
     );
   }
 
-  // ====================== UI HELPERS ======================
-
-  Widget _section(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12, top: 20),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
+  // ================= UI HELPERS =================
+  Widget _section(String title) => Padding(
+        padding: const EdgeInsets.only(bottom: 12, top: 20),
+        child: Text(
+          title,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-      ),
-    );
-  }
+      );
 
-  Widget _input(TextEditingController c, String label,
-      {int maxLines = 1}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        controller: c,
-        maxLines: maxLines,
-        validator: (v) => v!.isEmpty ? "Wajib diisi" : null,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
+  Widget _input(TextEditingController c, String label, {int maxLines = 1}) =>
+      Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: TextFormField(
+          controller: c,
+          maxLines: maxLines,
+          validator: (v) => v!.isEmpty ? "Wajib diisi" : null,
+          decoration: InputDecoration(
+            labelText: label,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
           ),
         ),
-      ),
-    );
-  }
+      );
 
-  Widget _number(TextEditingController c, String label) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        controller: c,
-        keyboardType: TextInputType.number,
-        validator: (v) => int.tryParse(v!) == null ? "Harus angka" : null,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
+  Widget _number(TextEditingController c, String label) => _input(c, label);
+
+  Widget _rating() => _input(ratingController, "Rating (0 - 5)");
+
+  Widget _dropdown() => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: DropdownButtonFormField(
+          initialValue: selectedType,
+          decoration: const InputDecoration(labelText: "Tipe Properti"),
+          items: propertyTypes
+              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+              .toList(),
+          onChanged: (v) => setState(() => selectedType = v!),
         ),
-      ),
-    );
-  }
-
-  Widget _rating() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        controller: ratingController,
-        keyboardType:
-            const TextInputType.numberWithOptions(decimal: true),
-        validator: (v) {
-          final value = double.tryParse(v!);
-          if (value == null) return "Harus angka";
-          if (value < 0 || value > 5) return "Rating 0 - 5";
-          return null;
-        },
-        decoration: InputDecoration(
-          labelText: "Rating (0 - 5)",
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _dropdown() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: DropdownButtonFormField(
-        initialValue: selectedType,
-        decoration: const InputDecoration(labelText: "Tipe Properti"),
-        items: propertyTypes
-            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-            .toList(),
-        onChanged: (v) => setState(() => selectedType = v!),
-      ),
-    );
-  }
+      );
 }

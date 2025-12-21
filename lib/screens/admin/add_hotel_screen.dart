@@ -10,11 +10,10 @@ class AddHotelScreen extends StatefulWidget {
 }
 
 class _AddHotelScreenState extends State<AddHotelScreen> {
-  // Constants
+  // ================= CONSTANT =================
   static const Color _primaryBrown = Color(0xFF6F4E37);
   static const Color _cream = Color(0xFFF5EFE6);
-  static const String _defaultImage = 'https://images.unsplash.com/photo-1602343168117-bb8ffe3e2e9f?w=800';
-  
+
   static const List<String> _propertyTypes = ['hotel', 'villa', 'homestay'];
   static const List<String> _availableFacilities = [
     'WiFi',
@@ -27,10 +26,10 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
     'Security',
   ];
 
-  // Form key
+  // ================= FORM =================
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers
+  // ================= CONTROLLERS =================
   final _nameController = TextEditingController();
   final _cityController = TextEditingController();
   final _addressController = TextEditingController();
@@ -43,7 +42,7 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
   final _reviewsController = TextEditingController();
   final _imageController = TextEditingController();
 
-  // State variables
+  // ================= STATE =================
   String _selectedType = 'hotel';
   final List<String> _facilities = [];
   final List<String> _images = [];
@@ -65,11 +64,13 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
     super.dispose();
   }
 
-  // Validasi URL
+  // ================= VALIDASI URL =================
   bool _isValidUrl(String url) {
-    return Uri.tryParse(url)?.hasAbsolutePath ?? false;
+    final uri = Uri.tryParse(url);
+    return uri != null && uri.isAbsolute;
   }
 
+  // ================= IMAGE =================
   void _addImage() {
     final url = _imageController.text.trim();
     if (url.isEmpty) return;
@@ -86,21 +87,19 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
   }
 
   void _removeImage(int index) {
-    setState(() {
-      _images.removeAt(index);
-    });
+    setState(() => _images.removeAt(index));
   }
 
+  // ================= FACILITY =================
   void _toggleFacility(String facility) {
     setState(() {
-      if (_facilities.contains(facility)) {
-        _facilities.remove(facility);
-      } else {
-        _facilities.add(facility);
-      }
+      _facilities.contains(facility)
+          ? _facilities.remove(facility)
+          : _facilities.add(facility);
     });
   }
 
+  // ================= SUBMIT =================
   Future<void> _addHotel() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -109,7 +108,10 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
       return;
     }
 
-    final List<String> finalImages = _images.isNotEmpty ? _images : [_defaultImage];
+    if (_images.isEmpty) {
+      _showSnackBar('Tambahkan minimal 1 gambar');
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -117,7 +119,10 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
       final uid = FirebaseAuth.instance.currentUser!.uid;
       final propertyId = 'prop_${DateTime.now().millisecondsSinceEpoch}';
 
-      await FirebaseFirestore.instance.collection('properties').doc(propertyId).set({
+      await FirebaseFirestore.instance
+          .collection('properties')
+          .doc(propertyId)
+          .set({
         'propertyId': propertyId,
         'ownerId': uid,
         'name': _nameController.text.trim(),
@@ -132,7 +137,7 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
         'rating': double.parse(_ratingController.text),
         'totalReviews': int.parse(_reviewsController.text),
         'facilities': _facilities,
-        'images': finalImages,
+        'images': _images,
         'latitude': -6.2088,
         'longitude': 106.8456,
         'isActive': true,
@@ -140,25 +145,22 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
       });
 
       if (!mounted) return;
-
       _showSnackBar('Properti berhasil ditambahkan');
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
       _showSnackBar('Gagal menambahkan properti: $e');
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
+  // ================= UI =================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -172,10 +174,7 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
     return AppBar(
       title: const Text(
         'Tambah Properti',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
+        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
       ),
       centerTitle: true,
       backgroundColor: _primaryBrown,
@@ -203,6 +202,7 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
     );
   }
 
+  // ================= SECTIONS =================
   Widget _buildPropertyInfoSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,11 +279,31 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
             spacing: 6,
             runSpacing: 6,
             children: List.generate(_images.length, (index) {
-              return Chip(
-                label: Text('Gambar ${index + 1}'),
-                backgroundColor: _cream,
-                deleteIcon: const Icon(Icons.close, size: 18),
-                onDeleted: () => _removeImage(index),
+              final imageUrl = _images[index];
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Chip(
+                    label: Text('Gambar ${index + 1}'),
+                    backgroundColor: _cream,
+                    deleteIcon: const Icon(Icons.close, size: 18),
+                    onDeleted: () => _removeImage(index),
+                  ),
+                  const SizedBox(height: 4),
+                  SizedBox(
+                    width: 120,
+                    height: 80,
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          Container(
+                        color: Colors.grey[300],
+                        child: const Icon(Icons.broken_image, size: 40),
+                      ),
+                    ),
+                  ),
+                ],
               );
             }),
           ),
@@ -302,7 +322,6 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
-          disabledBackgroundColor: _primaryBrown.withOpacity(0.6),
         ),
         onPressed: _isLoading ? null : _addHotel,
         child: _isLoading
@@ -316,16 +335,14 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
               )
             : const Text(
                 'SIMPAN PROPERTI',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1,
-                ),
+                style:
+                    TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1),
               ),
       ),
     );
   }
 
-  // UI Component Builders
+  // ================= INPUT HELPERS =================
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -340,54 +357,25 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
     );
   }
 
-  Widget _buildTextInput(
-    TextEditingController controller,
-    String label, {
-    int maxLines = 1,
-  }) {
+  Widget _buildTextInput(TextEditingController controller, String label,
+      {int maxLines = 1}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextFormField(
         controller: controller,
         maxLines: maxLines,
-        validator: (value) => value?.isEmpty ?? true ? 'Wajib diisi' : null,
+        validator: (v) => v!.isEmpty ? 'Wajib diisi' : null,
         decoration: _buildInputDecoration(label),
       ),
     );
   }
 
   Widget _buildNumberInput(TextEditingController controller, String label) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: TextInputType.number,
-        validator: (value) {
-          if (value?.isEmpty ?? true) return 'Wajib diisi';
-          if (int.tryParse(value!) == null) return 'Harus angka';
-          return null;
-        },
-        decoration: _buildInputDecoration(label),
-      ),
-    );
+    return _buildTextInput(controller, label);
   }
 
   Widget _buildRatingInput() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        controller: _ratingController,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        validator: (value) {
-          if (value?.isEmpty ?? true) return 'Wajib diisi';
-          final rating = double.tryParse(value!);
-          if (rating == null) return 'Harus angka';
-          if (rating < 0 || rating > 5) return 'Rating harus 0 - 5';
-          return null;
-        },
-        decoration: _buildInputDecoration('Rating (0 - 5)'),
-      ),
-    );
+    return _buildTextInput(_ratingController, 'Rating (0 - 5)');
   }
 
   Widget _buildDropdown() {
@@ -402,11 +390,7 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
             child: Text(type.toUpperCase()),
           );
         }).toList(),
-        onChanged: (value) {
-          if (value != null) {
-            setState(() => _selectedType = value);
-          }
-        },
+        onChanged: (v) => setState(() => _selectedType = v!),
       ),
     );
   }
@@ -420,21 +404,9 @@ class _AddHotelScreenState extends State<AddHotelScreen> {
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide.none,
       ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide.none,
-      ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(color: _primaryBrown, width: 2),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Colors.red, width: 1),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Colors.red, width: 2),
       ),
     );
   }
